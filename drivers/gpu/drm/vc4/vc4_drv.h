@@ -448,6 +448,9 @@ to_vc4_encoder(struct drm_encoder *encoder)
 }
 
 struct vc4_crtc_data {
+	/* Which channels of the HVS can the output source from */
+	unsigned int hvs_available_channels;
+
 	/* Which output of the HVS this pixelvalve sources from. */
 	int hvs_output;
 
@@ -466,9 +469,6 @@ struct vc4_crtc {
 
 	/* Timestamp at start of vblank irq - unaffected by lock delays. */
 	ktime_t t_vblank;
-
-	/* Which HVS channel we're using for our CRTC. */
-	int channel;
 
 	u8 lut_r[256];
 	u8 lut_g[256];
@@ -491,6 +491,7 @@ struct vc4_crtc_state {
 	struct drm_mm_node mm;
 	bool feed_txp;
 	bool txp_armed;
+	unsigned int assigned_channel;
 
 	struct {
 		unsigned int left;
