@@ -1,0 +1,26 @@
+drm/vc4: Support BCM2711 Display Pipeline
+
+Hi everyone,
+
+Here's a (pretty long) series to introduce support in the VC4 DRM driver
+for the display pipeline found in the BCM2711 (and thus the RaspberryPi 4).
+
+The main differences are that there's two HDMI controllers and that there's
+more pixelvalve now. Those pixelvalve come with a mux in the HVS that still
+have only 3 FIFOs. Both of those differences are breaking a bunch of
+expectations in the driver, so we first need a good bunch of cleanup and
+reworks to introduce support for the new controllers.
+
+Similarly, the HDMI controller has all its registers shuffled and split in
+multiple controllers now, so we need a bunch of changes to support this as
+well.
+
+Only the HDMI support is enabled for now (even though the DPI output has
+been tested too). There's a couple of rough edges still that should be
+addressed in the next versions:
+  - Dual output doesn't work
+  - The transposer (and thus writeback) doesn't work either and conflicts
+    with the output mux too.
+
+Let me know if you have any comments
+Maxime
