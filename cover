@@ -24,3 +24,6 @@ addressed in the next versions:
 
 Let me know if you have any comments
 Maxime
+
+Changes from v1:
+  - Fixed a few bisection and CEC build issues
