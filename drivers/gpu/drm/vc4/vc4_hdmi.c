@@ -1682,7 +1682,7 @@ static const struct vc4_hdmi_variant bcm2835_variant = {
 	.phy_rng_disable	= vc4_hdmi_phy_rng_disable,
 };
 
-struct vc4_hdmi_variant bcm2711_hdmi0_variant = {
+static const struct vc4_hdmi_variant bcm2711_hdmi0_variant = {
 	.id			= 0,
 	.max_pixel_clock	= 297000000,
 	.registers		= vc5_hdmi_hdmi0_fields,
@@ -1703,7 +1703,7 @@ struct vc4_hdmi_variant bcm2711_hdmi0_variant = {
 	.phy_rng_disable	= vc5_hdmi_phy_rng_disable,
 };
 
-struct vc4_hdmi_variant bcm2711_hdmi1_variant = {
+static const struct vc4_hdmi_variant bcm2711_hdmi1_variant = {
 	.id			= 1,
 	.max_pixel_clock	= 297000000,
 	.registers		= vc5_hdmi_hdmi1_fields,
