@@ -70,7 +70,7 @@ struct raspberrypi_firmware_prop {
 } __packed;
 
 static int raspberrypi_clock_property(struct rpi_firmware *firmware,
-				      struct raspberrypi_clk_data *data,
+				      const struct raspberrypi_clk_data *data,
 				      u32 tag, u32 *val)
 {
 	struct raspberrypi_firmware_prop msg = {
