@@ -26,6 +26,8 @@ Let me know if you have any comments
 Maxime
 
 Changes from v1:
+  - Reorder Kconfig symbols in drivers/i2c/busses
+  - Remove generic clk patch to test if a NULL pointer is returned
   - Removed misleading message in the is_prepared renaming patch commit
     message
   - Added a mention in the DT binding conversion patches about the breakage
