@@ -70,11 +70,14 @@ static int reset_simple_reset(struct reset_controller_dev *rcdev,
 	struct reset_simple_data *data = to_reset_simple_data(rcdev);
 	int ret;
 
+	if (!data->reset_us)
+		return -ENOTSUPP;
+
 	ret = reset_simple_assert(rcdev, id);
 	if (ret)
 		return ret;
 
-	mdelay(data->reset_ms);
+	usleep_range(data->reset_us, data->reset_us * 2);
 
 	ret = reset_simple_deassert(rcdev, id);
 	if (ret)
