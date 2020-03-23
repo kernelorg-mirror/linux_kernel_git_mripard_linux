@@ -289,6 +289,11 @@ static long raspberrypi_fw_dumb_round_rate(struct clk_hw *hw,
 					   unsigned long rate,
 					   unsigned long *parent_rate)
 {
+	/*
+	 * The firmware will do the rounding but that isn't part of
+	 * the interface with the firmware, so we just do our best
+	 * here.
+	 */
 	return rate;
 }
 
