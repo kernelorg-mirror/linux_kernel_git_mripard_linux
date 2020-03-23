@@ -136,8 +136,8 @@ enum rpi_firmware_property_tag {
 };
 
 struct rpi_firmware_get_clocks_response {
-	__le32	parent;
-	__le32	id;
+	__le32 parent;
+	__le32 id;
 };
 
 #if IS_ENABLED(CONFIG_RASPBERRYPI_FIRMWARE)

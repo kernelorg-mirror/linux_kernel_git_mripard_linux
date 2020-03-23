@@ -322,11 +322,7 @@ static struct clk_hw *raspberrypi_clk_register(struct raspberrypi_clk *rpi,
 			return hw;
 		}
 
-		hw = raspberrypi_register_pllb_arm(rpi);
-		if (IS_ERR(hw))
-			return hw;
-
-		return hw;
+		return raspberrypi_register_pllb_arm(rpi);
 	}
 
 	data = devm_kzalloc(rpi->dev, sizeof(*data), GFP_KERNEL);
@@ -337,7 +333,7 @@ static struct clk_hw *raspberrypi_clk_register(struct raspberrypi_clk *rpi,
 
 	init.name = devm_kasprintf(rpi->dev, GFP_KERNEL, "fw-clk-%u", id);
 	init.ops = &raspberrypi_firmware_clk_ops;
-	init.flags = CLK_GET_RATE_NOCACHE | CLK_IGNORE_UNUSED;
+	init.flags = CLK_GET_RATE_NOCACHE;
 
 	data->hw.init = &init;
 
@@ -352,15 +348,14 @@ static int raspberrypi_discover_clocks(struct raspberrypi_clk *rpi,
 				       struct clk_hw_onecell_data *data)
 {
 	struct rpi_firmware_get_clocks_response *clks;
-	size_t clks_size = NUM_FW_CLKS * sizeof(*clks);
 	int ret;
 
-	clks = devm_kzalloc(rpi->dev, clks_size, GFP_KERNEL);
+	clks = devm_kcalloc(rpi->dev, sizeof(*clks), NUM_FW_CLKS, GFP_KERNEL);
 	if (!clks)
 		return -ENOMEM;
 
 	ret = rpi_firmware_property(rpi->firmware, RPI_FIRMWARE_GET_CLOCKS,
-				    clks, clks_size);
+				    clks, sizeof(*clks) * NUM_FW_CLKS);
 	if (ret)
 		return ret;
 
