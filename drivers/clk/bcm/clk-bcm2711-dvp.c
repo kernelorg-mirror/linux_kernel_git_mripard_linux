@@ -52,19 +52,19 @@ static int clk_dvp_probe(struct platform_device *pdev)
 	if (!parent)
 		goto unregister_reset;
 
-	dvp->clks[0] = clk_register_gate(&pdev->dev, "hdmi0-108MHz",
-					 parent, CLK_IS_CRITICAL,
-					 base + DVP_HT_RPI_MISC_CONFIG, 3,
-					 CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
+	dvp->clks[0] = clk_hw_register_gate(&pdev->dev, "hdmi0-108MHz",
+					    parent, 0,
+					    base + DVP_HT_RPI_MISC_CONFIG, 3,
+					    CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
 	if (IS_ERR(dvp->clks[0])) {
 		ret = PTR_ERR(dvp->clks[0]);
 		goto unregister_reset;
 	}
 
-	dvp->clks[1] = clk_register_gate(&pdev->dev, "hdmi1-108MHz",
-					 parent, CLK_IS_CRITICAL,
-					 base + DVP_HT_RPI_MISC_CONFIG, 4,
-					 CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
+	dvp->clks[1] = clk_hw_register_gate(&pdev->dev, "hdmi1-108MHz",
+					    parent, 0,
+					    base + DVP_HT_RPI_MISC_CONFIG, 4,
+					    CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
 	if (IS_ERR(dvp->clks[1])) {
 		ret = PTR_ERR(dvp->clks[1]);
 		goto unregister_clk0;
@@ -72,14 +72,19 @@ static int clk_dvp_probe(struct platform_device *pdev)
 
 	dvp->clk_data.clks = dvp->clks;
 	dvp->clk_data.clk_num = NR_CLOCKS;
-	of_clk_add_provider(pdev->dev.of_node, of_clk_src_onecell_get,
-			    &dvp->clk_data);
+	ret = of_clk_add_hw_provider(pdev->dev.of_node, of_clk_hw_onecell_get,
+				     &dvp->clk_data);
+	if (ret)
+		goto unregister_clk1;
 
 	return 0;
 
 
 unregister_clk0:
-	clk_unregister_gate(dvp->clks[0]);
+	clk_hw_unregister_gate(dvp->clks[1]);
+
+unregister_clk0:
+	clk_hw_unregister_gate(dvp->clks[0]);
 
 unregister_reset:
 	reset_controller_unregister(&dvp->reset.rcdev);
@@ -90,8 +95,8 @@ static int clk_dvp_remove(struct platform_device *pdev)
 {
 	struct clk_dvp *dvp = platform_get_drvdata(pdev);
 
-	clk_unregister_gate(dvp->clks[1]);
-	clk_unregister_gate(dvp->clks[0]);
+	clk_hw_unregister_gate(dvp->clks[1]);
+	clk_hw_unregister_gate(dvp->clks[0]);
 	reset_controller_unregister(&dvp->reset.rcdev);
 
 	return 0;
@@ -99,7 +104,7 @@ static int clk_dvp_remove(struct platform_device *pdev)
 
 static const struct of_device_id clk_dvp_dt_ids[] = {
 	{ .compatible = "brcm,brcm2711-dvp", },
-	{ /* sentinel */ },
+	{ /* sentinel */ }
 };
 
 static struct platform_driver clk_dvp_driver = {
