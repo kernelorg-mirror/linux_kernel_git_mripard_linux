@@ -27,9 +27,16 @@ Maxime
 
 Changes from v1:
   - Reorder Kconfig symbols in drivers/i2c/busses
+  - Switch DVP clock driver to clk_hw interface
+  - constify raspberrypi_clk_data in raspberrypi_clock_property
+  - Don't mark firmware clocks as IGNORE_UNUSED
+  - Change from reset_ms to reset_us in reset-simple, and add a bit more
+    comments
   - Remove generic clk patch to test if a NULL pointer is returned
   - Removed misleading message in the is_prepared renaming patch commit
     message
+  - Constify HDMI controller variants
+  - Fix a bug in the allocation size of the clk data array
   - Added a mention in the DT binding conversion patches about the breakage
   - Merged a few fixes from kbuild
   - Fixed a few bisection and CEC build issues
