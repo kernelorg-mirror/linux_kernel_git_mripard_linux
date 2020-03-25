@@ -329,7 +329,6 @@
 				    "csc",
 				    "cec",
 				    "hd";
-			clocks = <&firmware_clocks 13>;
 			clock-names = "hdmi";
 			resets = <&dvp 0>;
 			ddc = <&ddc0>;
@@ -365,7 +364,6 @@
 				    "cec",
 				    "hd";
 			ddc = <&ddc1>;
-			clocks = <&firmware_clocks 13>;
 			clock-names = "hdmi";
 			resets = <&dvp 1>;
 			status = "disabled";
