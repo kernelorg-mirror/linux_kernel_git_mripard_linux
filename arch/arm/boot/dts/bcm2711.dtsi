@@ -25,12 +25,6 @@
 		clock-output-names = "108MHz-clock";
 	};
 
-	firmware_clocks: firmware-clocks {
-		compatible = "raspberrypi,firmware-clocks";
-		raspberrypi,firmware = <&firmware>;
-		#clock-cells = <1>;
-	};
-
 	soc {
 		/*
 		 * Defined ranges:
