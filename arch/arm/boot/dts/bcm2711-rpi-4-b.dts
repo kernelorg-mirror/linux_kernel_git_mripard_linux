@@ -101,6 +101,13 @@
 	status = "okay";
 };
 
+&firmware {
+	firmware_clocks: firmware-clocks {
+		compatible = "raspberrypi,firmware-clocks";
+		#clock-cells = <1>;
+	};
+};
+
 &genet {
 	phy-handle = <&phy1>;
 	phy-mode = "rgmii-rxid";
