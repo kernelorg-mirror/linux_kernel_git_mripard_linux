@@ -55,6 +55,11 @@
 };
 
 &firmware {
+	firmware_clocks: clocks {
+		compatible = "raspberrypi,firmware-clocks";
+		#clock-cells = <1>;
+	};
+
 	expgpio: gpio {
 		compatible = "raspberrypi,firmware-gpio";
 		gpio-controller;
@@ -99,13 +104,6 @@
 	vqmmc-supply = <&sd_io_1v8_reg>;
 	broken-cd;
 	status = "okay";
-};
-
-&firmware {
-	firmware_clocks: firmware-clocks {
-		compatible = "raspberrypi,firmware-clocks";
-		#clock-cells = <1>;
-	};
 };
 
 &genet {
