@@ -18,13 +18,16 @@ struct clk_dvp {
 	struct reset_simple_data	reset;
 };
 
+static const struct clk_parent_data clk_dvp_parent = {
+	.index	= 0,
+};
+
 static int clk_dvp_probe(struct platform_device *pdev)
 {
 	struct clk_hw_onecell_data *data;
 	struct resource *res;
 	struct clk_dvp *dvp;
 	void __iomem *base;
-	const char *parent;
 	int ret;
 
 	dvp = devm_kzalloc(&pdev->dev, sizeof(*dvp), GFP_KERNEL);
@@ -55,23 +58,23 @@ static int clk_dvp_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	parent = of_clk_get_parent_name(pdev->dev.of_node, 0);
-	if (!parent)
-		goto unregister_reset;
-
-	data->hws[0] = clk_hw_register_gate(&pdev->dev, "hdmi0-108MHz",
-					    parent, 0,
-					    base + DVP_HT_RPI_MISC_CONFIG, 3,
-					    CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
+	data->hws[0] = clk_hw_register_gate_parent_data(&pdev->dev,
+							"hdmi0-108MHz",
+							&clk_dvp_parent, 0,
+							base + DVP_HT_RPI_MISC_CONFIG, 3,
+							CLK_GATE_SET_TO_DISABLE,
+							&dvp->reset.lock);
 	if (IS_ERR(data->hws[0])) {
 		ret = PTR_ERR(data->hws[0]);
 		goto unregister_reset;
 	}
 
-	data->hws[1] = clk_hw_register_gate(&pdev->dev, "hdmi1-108MHz",
-					    parent, 0,
-					    base + DVP_HT_RPI_MISC_CONFIG, 4,
-					    CLK_GATE_SET_TO_DISABLE, &dvp->reset.lock);
+	data->hws[1] = clk_hw_register_gate_parent_data(&pdev->dev,
+							"hdmi1-108MHz",
+							&clk_dvp_parent, 0,
+							base + DVP_HT_RPI_MISC_CONFIG, 4,
+							CLK_GATE_SET_TO_DISABLE,
+							&dvp->reset.lock);
 	if (IS_ERR(data->hws[1])) {
 		ret = PTR_ERR(data->hws[1]);
 		goto unregister_clk0;
