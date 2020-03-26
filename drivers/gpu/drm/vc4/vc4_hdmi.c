@@ -572,10 +572,22 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
 	}
 
 	/*
-	 * The HSM rate needs to be at 108% of the pixel clock, with a
-	 * minimum of 108MHz.
+	 * As stated in RPi's vc4 firmware "HDMI state machine (HSM) clock must
+	 * be faster than pixel clock, infinitesimally faster, tested in
+	 * simulation. Otherwise, exact value is unimportant for HDMI
+	 * operation." This conflicts with bcm2835's vc4 documentation, which
+	 * states HSM's clock has to be at least 108% of the pixel clock.
+	 *
+	 * Real life tests reveal that vc4's firmware statement holds up, and
+	 * users are able to use pixel clocks closer to HSM's, namely for
+	 * 1920x1200@60Hz. So it was decided to have leave a 1% margin between
+	 * both clocks. Which, for RPi0-3 implies a maximum pixel clock of
+	 * 162MHz.
+	 *
+	 * Additionally, the AXI clock needs to be at least 25% of
+	 * pixel clock, but HSM ends up being the limiting factor.
 	 */
-	hsm_rate = max_t(unsigned long, 108000000, (pixel_rate / 100) * 108);
+	hsm_rate = max_t(unsigned long, 108000000, (pixel_rate / 100) * 101);
 	ret = clk_set_rate(vc4_hdmi->hsm_clock, hsm_rate);
 	if (ret) {
 		DRM_ERROR("Failed to set HSM clock rate: %d\n", ret);
@@ -1666,7 +1678,7 @@ static int vc4_hdmi_dev_remove(struct platform_device *pdev)
 }
 
 static const struct vc4_hdmi_variant bcm2835_variant = {
-	.max_pixel_clock	= 148500000,
+	.max_pixel_clock	= 162000000,
 	.audio_available	= true,
 	.cec_available		= true,
 	.registers		= vc4_hdmi_fields,
