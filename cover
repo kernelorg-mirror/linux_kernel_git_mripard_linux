@@ -26,7 +26,11 @@ Let me know if you have any comments
 Maxime
 
 Changes from v1:
+  - Added audio support
+  - Fixed some HDMI timeouts
+  - Swiched to clk_hw_register_gate_parent_data
   - Reorder Kconfig symbols in drivers/i2c/busses
+  - Make the firmware clocks a child of the firmware node
   - Switch DVP clock driver to clk_hw interface
   - constify raspberrypi_clk_data in raspberrypi_clock_property
   - Don't mark firmware clocks as IGNORE_UNUSED
