@@ -169,7 +169,7 @@
 };
 
 &hdmi0 {
-	clocks = <&firmware_clocks 13>;
+	clocks = <&firmware_clocks 13>, <&dvp 0>;
 	status = "okay";
 };
 
@@ -178,7 +178,7 @@
 };
 
 &hdmi1 {
-	clocks = <&firmware_clocks 13>;
+	clocks = <&firmware_clocks 13>, <&dvp 1>;
 	status = "okay";
 };
 
