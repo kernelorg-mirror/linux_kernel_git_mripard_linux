@@ -329,7 +329,7 @@
 				    "csc",
 				    "cec",
 				    "hd";
-			clock-names = "hdmi";
+			clock-names = "hdmi", "clk-108M";
 			resets = <&dvp 0>;
 			ddc = <&ddc0>;
 			status = "disabled";
@@ -364,7 +364,7 @@
 				    "cec",
 				    "hd";
 			ddc = <&ddc1>;
-			clock-names = "hdmi";
+			clock-names = "hdmi", "clk-108M";
 			resets = <&dvp 1>;
 			status = "disabled";
 		};
