@@ -39,6 +39,7 @@ Cc: Wolfram Sang <wsa@the-dreams.de>
 
 Changes from v1:
   - Rebased on top of 5.7-rc1
+  - Run checkpatch
   - Added audio support
   - Fixed some HDMI timeouts
   - Swiched to clk_hw_register_gate_parent_data
