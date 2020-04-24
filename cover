@@ -26,6 +26,7 @@ Let me know if you have any comments
 Maxime
 
 Changes from v1:
+  - Rebased on top of 5.7-rc1
   - Added audio support
   - Fixed some HDMI timeouts
   - Swiched to clk_hw_register_gate_parent_data
