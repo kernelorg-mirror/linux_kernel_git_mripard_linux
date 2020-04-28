@@ -271,12 +271,8 @@ static int rpi_firmware_remove(struct platform_device *pdev)
 
 	platform_device_unregister(rpi_hwmon);
 	rpi_hwmon = NULL;
-
-	if (rpi_clk) {
-		platform_device_unregister(rpi_clk);
-		rpi_clk = NULL;
-	}
-
+	platform_device_unregister(rpi_clk);
+	rpi_clk = NULL;
 	mbox_free_channel(fw->chan);
 
 	return 0;
