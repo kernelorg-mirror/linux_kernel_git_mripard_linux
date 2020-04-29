@@ -19,7 +19,6 @@ Only the HDMI support is enabled for now (even though the DPI output has
 been tested too). There's a couple of rough edges still that should be
 addressed in the next versions:
   - After a modeset, it's likely that the pixels will be shifted by one.
-  - Dual output doesn't work
   - The transposer (and thus writeback) doesn't work either and conflicts
     with the output mux too.
 
@@ -35,7 +34,6 @@ Cc: Michael Turquette <mturquette@baylibre.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>
 
 Changes from v1:
   - Rebased on top of 5.7-rc1
