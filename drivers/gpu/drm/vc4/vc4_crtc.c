@@ -433,8 +433,6 @@ static void vc4_crtc_atomic_enable(struct drm_crtc *crtc,
 
 	require_hvs_enabled(dev);
 
-	vc4_crtc_pixelvalve_reset(crtc);
-
 	if (!vc4_state->feed_txp)
 		vc4_crtc_config_pv(crtc);
 
