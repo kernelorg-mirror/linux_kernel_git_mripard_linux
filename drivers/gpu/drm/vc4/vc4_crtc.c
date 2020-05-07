@@ -373,7 +373,7 @@ static void vc4_crtc_config_pv(struct drm_crtc *crtc)
 	if (is_dsi)
 		CRTC_WRITE(PV_HACT_ACT, mode->hdisplay * pixel_rep);
 
-	if (!vc4->hvs->hvs5)
+	if (vc4->hvs->hvs5)
 		CRTC_WRITE(PV_MUX_CFG,
 			   VC4_SET_FIELD(8, PV_MUX_CFG_RGB_PIXEL_MUX_MODE));
 
