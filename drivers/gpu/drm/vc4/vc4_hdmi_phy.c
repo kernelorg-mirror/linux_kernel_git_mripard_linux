@@ -333,6 +333,12 @@ phy_get_channel_settings(enum vc4_hdmi_phy_channel chan,
 	return &settings->channel[chan];
 }
 
+static void vc5_hdmi_reset_phy(struct vc4_hdmi *vc4_hdmi)
+{
+	HDMI_WRITE(HDMI_TX_PHY_RESET_CTL, 0x0f);
+	HDMI_WRITE(HDMI_TX_PHY_POWERDOWN_CTL, BIT(10));
+}
+
 void vc5_hdmi_phy_init(struct vc4_hdmi *vc4_hdmi, struct drm_display_mode *mode)
 {
 	const struct phy_lane_settings *chan0_settings, *chan1_settings, *chan2_settings, *clock_settings;
@@ -343,6 +349,8 @@ void vc5_hdmi_phy_init(struct vc4_hdmi *vc4_hdmi, struct drm_display_mode *mode)
 	u8 vco_sel, vco_div;
 
 	vco_freq = phy_get_vco_freq(pixel_freq, &vco_sel, &vco_div);
+
+	vc5_hdmi_reset_phy(vc4_hdmi);
 
 	HDMI_WRITE(HDMI_TX_PHY_POWERDOWN_CTL,
 		   VC4_HDMI_TX_PHY_POWERDOWN_CTL_RNDGEN_PWRDN);
@@ -491,6 +499,10 @@ void vc5_hdmi_phy_init(struct vc4_hdmi *vc4_hdmi, struct drm_display_mode *mode)
 		   HDMI_READ(HDMI_TX_PHY_RESET_CTL) |
 		   VC4_HDMI_TX_PHY_RESET_CTL_PLL_RESETB |
 		   VC4_HDMI_TX_PHY_RESET_CTL_PLLDIV_RESETB);
+}
+
+void vc5_hdmi_phy_disable(struct vc4_hdmi *vc4_hdmi) {
+	vc5_hdmi_reset_phy(vc4_hdmi);
 }
 
 void vc5_hdmi_phy_rng_enable(struct vc4_hdmi *vc4_hdmi)
