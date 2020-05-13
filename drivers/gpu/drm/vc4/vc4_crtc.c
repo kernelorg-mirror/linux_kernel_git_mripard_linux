@@ -66,11 +66,8 @@ static const struct debugfs_reg32 crtc_regs[] = {
 };
 
 static unsigned int
-vc4_crtc_get_cob_allocation(struct vc4_crtc *vc4_crtc, unsigned int channel)
+vc4_crtc_get_cob_allocation(struct vc4_dev *vc4, unsigned int channel)
 {
-	struct drm_device *drm = vc4_crtc->base.dev;
-	struct vc4_dev *vc4 = to_vc4_dev(drm);
-
 	u32 dispbase = HVS_READ(SCALER_DISPBASEX(channel));
 	/* Top/base are supposed to be 4-pixel aligned, but the
 	 * Raspberry Pi firmware fills the low bits (which are
@@ -128,7 +125,7 @@ static bool vc4_crtc_get_scanout_position(struct drm_crtc *crtc,
 			*hpos += mode->crtc_htotal / 2;
 	}
 
-	cob_size = vc4_crtc_get_cob_allocation(vc4_crtc, vc4_crtc_state->assigned_channel);
+	cob_size = vc4_crtc_get_cob_allocation(vc4, vc4_crtc_state->assigned_channel);
 	/* This is the offset we need for translating hvs -> pv scanout pos. */
 	fifo_lines = cob_size / mode->crtc_hdisplay;
 
