@@ -169,7 +169,7 @@ static void vc4_hvs_pv_muxing_commit(struct vc4_dev *vc4,
 
 		switch (vc4_crtc->data->hvs_output) {
 		case 2:
-			dsp2_mux = (vc4_state->assigned_channel == 2) ? 1 : 0;
+			dsp2_mux = (vc4_state->assigned_channel == 2) ? 0 : 1;
 			break;
 
 		case 3:
