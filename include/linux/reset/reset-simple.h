@@ -31,7 +31,8 @@
  *            waited for between an assert and a deassert to reset the
  *            device. If multiple consumers with different delay
  *            requirements are connected to this controller, it must
- *            be the largest minimum delay.
+ *            be the largest minimum delay. 0 means that such a delay is
+ *            unknown and the reset operation is unsupported.
  */
 struct reset_simple_data {
 	spinlock_t			lock;
