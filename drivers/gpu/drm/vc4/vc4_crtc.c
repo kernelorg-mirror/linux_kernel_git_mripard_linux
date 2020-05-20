@@ -435,7 +435,6 @@ int vc4_crtc_disable_at_boot(struct drm_crtc *crtc)
 	struct drm_device *dev = crtc->dev;
 	struct vc4_crtc *vc4_crtc = to_vc4_crtc(crtc);
 	int channel;
-	int ret;
 
 	if (of_device_is_compatible(vc4_crtc->pdev->dev.of_node,
 				    "brcm,bcm2835-txp"))
