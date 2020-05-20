@@ -19,6 +19,7 @@
  * each CRTC.
  */
 
+#include <linux/bitfield.h>
 #include <linux/clk.h>
 #include <linux/component.h>
 #include <linux/platform_device.h>
@@ -194,6 +195,11 @@ static void vc4_hvs_update_gamma_lut(struct drm_crtc *crtc)
 	}
 
 	vc4_hvs_lut_load(crtc);
+}
+
+int vc4_hvs_get_fifo_from_output(struct drm_device *dev, unsigned int output)
+{
+	return output;
 }
 
 static int vc4_hvs_init_channel(struct vc4_dev *vc4, struct drm_crtc *crtc,
