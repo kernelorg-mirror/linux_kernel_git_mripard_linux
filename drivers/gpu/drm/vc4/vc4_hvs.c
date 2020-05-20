@@ -299,8 +299,10 @@ static int vc4_hvs_init_channel(struct vc4_dev *vc4, struct drm_crtc *crtc,
 	return 0;
 }
 
-void vc4_hvs_stop_channel(struct vc4_dev *vc4, unsigned int chan)
+void vc4_hvs_stop_channel(struct drm_device *dev, unsigned int chan)
 {
+	struct vc4_dev *vc4 = to_vc4_dev(dev);
+
 	if (HVS_READ(SCALER_DISPCTRLX(chan)) & SCALER_DISPCTRLX_ENABLE)
 		return;
 
@@ -402,11 +404,10 @@ void vc4_hvs_atomic_disable(struct drm_crtc *crtc,
 			    struct drm_crtc_state *old_state)
 {
 	struct drm_device *dev = crtc->dev;
-	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	struct vc4_crtc_state *vc4_crtc_state = to_vc4_crtc_state(old_state);
 	unsigned int chan = vc4_crtc_state->assigned_channel;
 
-	vc4_hvs_stop_channel(vc4, chan);
+	vc4_hvs_stop_channel(dev, chan);
 }
 
 void vc4_hvs_atomic_flush(struct drm_crtc *crtc,
