@@ -248,7 +248,7 @@ static int vc4_hvs_init_channel(struct vc4_dev *vc4, struct drm_crtc *crtc,
 	return 0;
 }
 
-static void vc4_hvs_stop_channel(struct vc4_dev *vc4, unsigned int chan)
+void vc4_hvs_stop_channel(struct vc4_dev *vc4, unsigned int chan)
 {
 	if (HVS_READ(SCALER_DISPCTRLX(chan)) & SCALER_DISPCTRLX_ENABLE)
 		return;
