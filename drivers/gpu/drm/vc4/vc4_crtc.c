@@ -458,10 +458,6 @@ static void vc4_crtc_atomic_disable(struct drm_crtc *crtc,
 {
 	struct vc4_crtc_state *old_vc4_state = to_vc4_crtc_state(old_state);
 	struct drm_device *dev = crtc->dev;
-	struct vc4_crtc *vc4_crtc = to_vc4_crtc(crtc);
-	struct drm_encoder *encoder = vc4_get_crtc_encoder(crtc);
-	struct vc4_encoder *vc4_encoder = to_vc4_encoder(encoder);
-	int ret;
 
 	require_hvs_enabled(dev);
 
