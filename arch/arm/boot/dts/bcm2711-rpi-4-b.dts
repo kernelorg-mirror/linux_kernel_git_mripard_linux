@@ -237,10 +237,6 @@
 	status = "okay";
 };
 
-&pixelvalve3 {
-	status = "okay";
-};
-
 &pixelvalve4 {
 	status = "okay";
 };
