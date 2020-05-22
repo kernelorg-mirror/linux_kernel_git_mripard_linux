@@ -490,6 +490,11 @@ static void vc4_crtc_atomic_enable(struct drm_crtc *crtc,
 
 	require_hvs_enabled(dev);
 
+	/* Enable vblank irq handling before crtc is started otherwise
+	 * drm_crtc_get_vblank() fails in vc4_crtc_update_dlist().
+	 */
+	drm_crtc_vblank_on(crtc);
+
 	vc4_hvs_atomic_enable(crtc, old_state);
 
 	if (vc4_encoder->pre_crtc_configure)
@@ -500,11 +505,6 @@ static void vc4_crtc_atomic_enable(struct drm_crtc *crtc,
 
 	if (vc4_encoder->pre_crtc_enable)
 		vc4_encoder->pre_crtc_enable(encoder);
-
-	/* Enable vblank irq handling before crtc is started otherwise
-	 * drm_crtc_get_vblank() fails in vc4_crtc_update_dlist().
-	 */
-	drm_crtc_vblank_on(crtc);
 
 	/* When feeding the transposer block the pixelvalve is unneeded and
 	 * should not be enabled.
