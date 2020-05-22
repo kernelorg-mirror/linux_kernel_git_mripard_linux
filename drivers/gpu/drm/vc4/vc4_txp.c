@@ -400,6 +400,13 @@ static int vc4_txp_atomic_check(struct drm_crtc *crtc,
 	return 0;
 }
 
+static void vc4_txp_atomic_enable(struct drm_crtc *crtc,
+				  struct drm_crtc_state *old_state)
+{
+	drm_crtc_vblank_on(crtc);
+	vc4_hvs_atomic_enable(crtc, old_state);
+}
+
 static void vc4_txp_atomic_disable(struct drm_crtc *crtc,
 				   struct drm_crtc_state *old_state)
 {
@@ -427,7 +434,7 @@ static void vc4_txp_atomic_disable(struct drm_crtc *crtc,
 static const struct drm_crtc_helper_funcs vc4_txp_crtc_helper_funcs = {
 	.atomic_check	= vc4_txp_atomic_check,
 	.atomic_flush	= vc4_hvs_atomic_flush,
-	.atomic_enable	= vc4_hvs_atomic_enable,
+	.atomic_enable	= vc4_txp_atomic_enable,
 	.atomic_disable	= vc4_txp_atomic_disable,
 };
 
