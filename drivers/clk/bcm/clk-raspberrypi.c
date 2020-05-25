@@ -399,6 +399,7 @@ static int raspberrypi_clk_probe(struct platform_device *pdev)
 	}
 
 	firmware = rpi_firmware_get(firmware_node);
+	of_node_put(firmware_node);
 	if (!firmware)
 		return -EPROBE_DEFER;
 
