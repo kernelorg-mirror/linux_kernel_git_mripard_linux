@@ -320,12 +320,15 @@ static long raspberrypi_fw_dumb_round_rate(struct clk_hw *hw,
 					   unsigned long rate,
 					   unsigned long *parent_rate)
 {
+	struct raspberrypi_clk_data *data =
+		container_of(hw, struct raspberrypi_clk_data, hw);
+
 	/*
 	 * The firmware will do the rounding but that isn't part of
 	 * the interface with the firmware, so we just do our best
 	 * here.
 	 */
-	return rate;
+	return clamp(rate, data->min_rate, data->max_rate);
 }
 
 static const struct clk_ops raspberrypi_firmware_clk_ops = {
@@ -341,6 +344,7 @@ static struct clk_hw *raspberrypi_clk_register(struct raspberrypi_clk *rpi,
 {
 	struct raspberrypi_clk_data *data;
 	struct clk_init_data init = {};
+	u32 min_rate, max_rate;
 	int ret;
 
 	if (id == RPI_FIRMWARE_ARM_CLK_ID) {
@@ -370,9 +374,42 @@ static struct clk_hw *raspberrypi_clk_register(struct raspberrypi_clk *rpi,
 
 	data->hw.init = &init;
 
+	ret = raspberrypi_clock_property(rpi->firmware, data,
+					 RPI_FIRMWARE_GET_MIN_CLOCK_RATE,
+					 &min_rate);
+	if (ret) {
+		dev_err(rpi->dev, "Failed to get clock %d min freq: %d",
+			id, ret);
+		return ERR_PTR(ret);
+	}
+
+	ret = raspberrypi_clock_property(rpi->firmware, data,
+					 RPI_FIRMWARE_GET_MAX_CLOCK_RATE,
+					 &max_rate);
+	if (ret) {
+		dev_err(rpi->dev, "Failed to get clock %d max freq: %d\n",
+			id, ret);
+		return ERR_PTR(ret);
+	}
+
+	dev_info(rpi->dev, "Clock %d frequency range: min %u, max %u\n",
+		 id, min_rate, max_rate);
+
+	data->min_rate = min_rate;
+	data->max_rate = max_rate;
+
 	ret = devm_clk_hw_register(rpi->dev, &data->hw);
 	if (ret)
 		return ERR_PTR(ret);
+
+	if (id == RPI_FIRMWARE_CORE_CLK_ID) {
+		ret = devm_clk_hw_register_clkdev(rpi->dev, &data->hw,
+						  NULL, "cpu0");
+		if (ret) {
+			dev_err(rpi->dev, "Failed to initialize clkdev\n");
+			return ERR_PTR(ret);
+		}
+	}
 
 	return &data->hw;
 }
