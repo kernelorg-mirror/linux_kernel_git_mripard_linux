@@ -235,8 +235,8 @@ static struct clk_hw *raspberrypi_clk_register(struct raspberrypi_clk *rpi,
 		return ERR_PTR(ret);
 	}
 
-	dev_info(rpi->dev, "Clock %d frequency range: min %u, max %u\n",
-		 id, min_rate, max_rate);
+	dev_info(rpi->dev, "Clock %s frequency range: min %u, max %u\n",
+		 raspberry_firmware_clk_names[id], min_rate, max_rate);
 
 	data->min_rate = min_rate;
 	data->max_rate = max_rate;
