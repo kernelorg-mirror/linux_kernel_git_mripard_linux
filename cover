@@ -35,6 +35,18 @@ Changes from v2:
   - Removed the stuck pixel (with all the subsequent pixels being shifted
     by one
   - Fixed the writeback issue too.
+  - Fix the dual output
+  - Fixed the return value of phy_get_cp_current
+  - Enhanced the comment on the reset delay
+  - Fixed an of_node leakage in the firmware driver
+  - Fixed an of_node leakage in the firmware clocks driver
+  - Increase the max width and height
+  - Made a proper Kconfig option for the DVP clock driver
+  - Fixed the alsa card name collision
+  - Added the min/max rate retrieval to all the firmware clocks
+  - Added proper name for the firmware clocks
+  - Removed the PLLB setup from the firmware clocks and moved it back to
+    the MMIO driver
 
 Changes from v1:
   - Rebased on top of 5.7-rc1
