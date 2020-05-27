@@ -18,6 +18,8 @@ well.
 Only the HDMI support is enabled for now (even though the DPI output has
 been tested too).
 
+This is based on the firmware clocks series sent separately:
+
 Let me know if you have any comments
 Maxime
 
@@ -25,13 +27,14 @@ Cc: bcm-kernel-feedback-list@broadcom.com
 Cc: devicetree@vger.kernel.org
 Cc: Kamal Dasu <kdasu.kdev@gmail.com>
 Cc: linux-clk@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org
 Cc: Michael Turquette <mturquette@baylibre.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v2:
+  - Rebased on top of next-20200526
+  - Split the firmware clock series away
   - Removed the stuck pixel (with all the subsequent pixels being shifted
     by one
   - Fixed the writeback issue too.
