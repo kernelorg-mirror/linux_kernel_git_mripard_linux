@@ -33,6 +33,9 @@ Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
+Changes from v3:
+  - Reordered the patches according to Eric's reviews
+
 Changes from v2:
   - Rebased on top of next-20200526
   - Split the firmware clock series away
