@@ -248,9 +248,8 @@ static u32 vc4_crtc_get_fifo_full_level_bits(struct vc4_crtc *vc4_crtc,
 	u32 level = vc4_get_fifo_full_level(vc4_crtc, format);
 	u32 ret = 0;
 
-	if (level > 0x3f)
-		ret |= VC4_SET_FIELD((level >> 6) & 0x3,
-				     PV5_CONTROL_FIFO_LEVEL_HIGH);
+	ret |= VC4_SET_FIELD((level >> 6),
+			     PV5_CONTROL_FIFO_LEVEL_HIGH);
 
 	return ret | VC4_SET_FIELD(level & 0x3f,
 				   PV_CONTROL_FIFO_LEVEL);
@@ -375,7 +374,8 @@ static void vc4_crtc_config_pv(struct drm_crtc *crtc)
 
 	if (vc4->hvs->hvs5)
 		CRTC_WRITE(PV_MUX_CFG,
-			   VC4_SET_FIELD(8, PV_MUX_CFG_RGB_PIXEL_MUX_MODE));
+			   VC4_SET_FIELD(PV_MUX_CFG_RGB_PIXEL_MUX_MODE_NO_SWAP,
+					 PV_MUX_CFG_RGB_PIXEL_MUX_MODE));
 
 	CRTC_WRITE(PV_CONTROL, PV_CONTROL_FIFO_CLR |
 		   vc4_crtc_get_fifo_full_level_bits(vc4_crtc, format) |
