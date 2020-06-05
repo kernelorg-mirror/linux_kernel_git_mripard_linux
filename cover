@@ -34,7 +34,11 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v3:
+  - Use clk_set_min_rate for the core clock too
+  - Switch VC4_SET_FIELD / VC4_GET_FIELD to FIELD_* accessors
+  - Add a few defines, and simplify the FIFO level stuff
   - Reordered the patches according to Eric's reviews
+  - Fixed a regression with VID_CTL setting on RPI3
 
 Changes from v2:
   - Rebased on top of next-20200526
