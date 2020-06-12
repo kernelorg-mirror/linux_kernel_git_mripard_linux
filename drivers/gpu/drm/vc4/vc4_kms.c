@@ -201,7 +201,8 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
 		vc4_hvs_mask_underrun(dev, vc4_crtc_state->assigned_channel);
 	}
 
-	clk_set_min_rate(hvs->core_clk, 500000000);
+	if (vc4->hvs->hvs5)
+		clk_set_min_rate(hvs->core_clk, 500000000);
 
 	drm_atomic_helper_wait_for_fences(dev, state, false);
 
@@ -227,7 +228,8 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
 
 	drm_atomic_helper_commit_cleanup_done(state);
 
-	clk_set_min_rate(hvs->core_clk, 0);
+	if (vc4->hvs->hvs5)
+		clk_set_min_rate(hvs->core_clk, 0);
 
 	drm_atomic_state_put(state);
 
