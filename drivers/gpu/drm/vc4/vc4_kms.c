@@ -11,6 +11,8 @@
  * crtc, HDMI encoder).
  */
 
+#include <linux/bitfield.h>
+#include <linux/bitops.h>
 #include <linux/clk.h>
 
 #include <drm/drm_atomic.h>
@@ -185,6 +187,72 @@ static void vc4_hvs_pv_muxing_commit(struct vc4_dev *vc4,
 	}
 }
 
+static void vc5_hvs_pv_muxing_commit(struct vc4_dev *vc4,
+				     struct drm_atomic_state *state)
+{
+	struct drm_crtc_state *crtc_state;
+	struct drm_crtc *crtc;
+	unsigned char dsp2_mux = 0;
+	unsigned char dsp3_mux = 3;
+	unsigned char dsp4_mux = 3;
+	unsigned char dsp5_mux = 3;
+	unsigned int i;
+	u32 reg;
+
+	for_each_new_crtc_in_state(state, crtc, crtc_state, i) {
+		struct vc4_crtc_state *vc4_state = to_vc4_crtc_state(crtc_state);
+		struct vc4_crtc *vc4_crtc = to_vc4_crtc(crtc);
+
+		if (!crtc_state->active)
+			continue;
+
+		switch (vc4_crtc->data->hvs_output) {
+		case 2:
+			dsp2_mux = (vc4_state->assigned_channel == 2) ? 0 : 1;
+			break;
+
+		case 3:
+			dsp3_mux = vc4_state->assigned_channel;
+			break;
+
+		case 4:
+			dsp4_mux = vc4_state->assigned_channel;
+			break;
+
+		case 5:
+			dsp5_mux = vc4_state->assigned_channel;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	reg = HVS_READ(SCALER_DISPECTRL);
+	if (FIELD_GET(SCALER_DISPECTRL_DSP2_MUX_MASK, reg) != dsp2_mux)
+		HVS_WRITE(SCALER_DISPECTRL,
+			  (reg & ~SCALER_DISPECTRL_DSP2_MUX_MASK) |
+			  VC4_SET_FIELD(dsp2_mux, SCALER_DISPECTRL_DSP2_MUX));
+
+	reg = HVS_READ(SCALER_DISPCTRL);
+	if (FIELD_GET(SCALER_DISPCTRL_DSP3_MUX_MASK, reg) != dsp3_mux)
+		HVS_WRITE(SCALER_DISPCTRL,
+			  (reg & ~SCALER_DISPCTRL_DSP3_MUX_MASK) |
+			  VC4_SET_FIELD(dsp3_mux, SCALER_DISPCTRL_DSP3_MUX));
+
+	reg = HVS_READ(SCALER_DISPEOLN);
+	if (FIELD_GET(SCALER_DISPEOLN_DSP4_MUX_MASK, reg) != dsp4_mux)
+		HVS_WRITE(SCALER_DISPEOLN,
+			  (reg & ~SCALER_DISPEOLN_DSP4_MUX_MASK) |
+			  VC4_SET_FIELD(dsp4_mux, SCALER_DISPEOLN_DSP4_MUX));
+
+	reg = HVS_READ(SCALER_DISPDITHER);
+	if (FIELD_GET(SCALER_DISPDITHER_DSP5_MUX_MASK, reg) != dsp5_mux)
+		HVS_WRITE(SCALER_DISPDITHER,
+			  (reg & ~SCALER_DISPDITHER_DSP5_MUX_MASK) |
+			  VC4_SET_FIELD(dsp5_mux, SCALER_DISPDITHER_DSP5_MUX));
+}
+
 static void
 vc4_atomic_complete_commit(struct drm_atomic_state *state)
 {
@@ -212,7 +280,10 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
 
 	vc4_ctm_commit(vc4, state);
 
-	vc4_hvs_pv_muxing_commit(vc4, state);
+	if (vc4->hvs->hvs5)
+		vc5_hvs_pv_muxing_commit(vc4, state);
+	else
+		vc4_hvs_pv_muxing_commit(vc4, state);
 
 	drm_atomic_helper_commit_planes(dev, state, 0);
 
