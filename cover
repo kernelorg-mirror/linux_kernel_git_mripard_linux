@@ -34,6 +34,10 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v3:
+  - Change the muxing code to take into account disparities between the
+    BCM2711 and previous SoCs.
+  - Only change the clock rate on BCM2711 during a modeset
+  - Fix a crash at atomic_disable
   - Use clk_set_min_rate for the core clock too
   - Switch VC4_SET_FIELD / VC4_GET_FIELD to FIELD_* accessors
   - Add a few defines, and simplify the FIFO level stuff
