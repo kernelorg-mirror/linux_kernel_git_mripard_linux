@@ -620,8 +620,7 @@ vc4_atomic_check(struct drm_device *dev, struct drm_atomic_state *state)
 		struct vc4_crtc_state *vc4_crtc_state =
 			to_vc4_crtc_state(crtc_state);
 		struct vc4_crtc *vc4_crtc = to_vc4_crtc(crtc);
-		bool is_assigned = false;
-		unsigned int channel;
+		unsigned int matching_channels;
 
 		if (!crtc_state->active)
 			continue;
@@ -650,20 +649,15 @@ vc4_atomic_check(struct drm_device *dev, struct drm_atomic_state *state)
 		 * the future, we will need to have something smarter,
 		 * but it works so far.
 		 */
-		for_each_set_bit(channel, &unassigned_channels,
-				 sizeof(unassigned_channels)) {
-
-			if (!(BIT(channel) & vc4_crtc->data->hvs_available_channels))
-				continue;
+		matching_channels = unassigned_channels & vc4_crtc->data->hvs_available_channels;
+		if (matching_channels) {
+			unsigned int channel = ffs(matching_channels) - 1;
 
 			vc4_crtc_state->assigned_channel = channel;
 			unassigned_channels &= ~BIT(channel);
-			is_assigned = true;
-			break;
-		}
-
-		if (!is_assigned)
+		} else {
 			return -EINVAL;
+		}
 	}
 
 	ret = vc4_ctm_atomic_check(dev, state);
