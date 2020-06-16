@@ -34,6 +34,7 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v3:
+  - Change atomic_complete_commit code to use for_each_new_crtc_in_state
   - Change the muxing code to take into account disparities between the
     BCM2711 and previous SoCs.
   - Only change the clock rate on BCM2711 during a modeset
