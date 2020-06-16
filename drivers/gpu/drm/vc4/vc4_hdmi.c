@@ -556,11 +556,8 @@ static void vc4_hdmi_encoder_pre_crtc_enable(struct drm_encoder *encoder)
 
 static void vc4_hdmi_encoder_post_crtc_enable(struct drm_encoder *encoder)
 {
-	struct drm_display_mode *mode = &encoder->crtc->state->adjusted_mode;
 	struct vc4_hdmi *vc4_hdmi = encoder_to_vc4_hdmi(encoder);
 	struct vc4_hdmi_encoder *vc4_encoder = to_vc4_hdmi_encoder(encoder);
-	bool hsync_pos = mode->flags & DRM_MODE_FLAG_PHSYNC;
-	bool vsync_pos = mode->flags & DRM_MODE_FLAG_PVSYNC;
 	int ret;
 
 	HDMI_WRITE(HDMI_VID_CTL,
