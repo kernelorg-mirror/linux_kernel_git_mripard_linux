@@ -170,7 +170,7 @@ static void vc4_hvs_lut_load(struct drm_crtc *crtc)
 	 * for B.
 	 */
 	HVS_WRITE(SCALER_GAMADDR,
-		  SCALER_GAMADDR_AUTOINC | 
+		  SCALER_GAMADDR_AUTOINC |
 		  (vc4_state->assigned_channel * 3 * crtc->gamma_size));
 
 	for (i = 0; i < crtc->gamma_size; i++)
