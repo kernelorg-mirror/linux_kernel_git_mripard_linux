@@ -208,7 +208,9 @@ void vc4_crtc_destroy(struct drm_crtc *crtc)
 
 static u32 vc4_get_fifo_full_level(struct vc4_crtc *vc4_crtc, u32 format)
 {
-	u32 fifo_len_bytes = vc4_crtc->data->fifo_depth;
+	const struct vc4_crtc_data *crtc_data = vc4_crtc_to_vc4_crtc_data(vc4_crtc);
+	const struct vc4_pv_data *pv_data = vc4_crtc_to_vc4_pv_data(vc4_crtc);
+	u32 fifo_len_bytes = pv_data->fifo_depth;
 
 	/*
 	 * Pixels are pulled from the HVS if the number of bytes is
@@ -233,7 +235,7 @@ static u32 vc4_get_fifo_full_level(struct vc4_crtc *vc4_crtc, u32 format)
 		 * For some reason, the pixelvalve4 doesn't work with
 		 * the usual formula and will only work with 32.
 		 */
-		if (vc4_crtc->data->hvs_output == 5)
+		if (crtc_data->hvs_output == 5)
 			return 32;
 
 		return fifo_len_bytes - 3 * HVS_FIFO_LATENCY_PIX;
