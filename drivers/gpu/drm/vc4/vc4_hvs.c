@@ -407,8 +407,8 @@ void vc4_hvs_atomic_disable(struct drm_crtc *crtc,
 			    struct drm_crtc_state *old_state)
 {
 	struct drm_device *dev = crtc->dev;
-	struct vc4_crtc_state *vc4_state = to_vc4_crtc_state(crtc->state);
-	u32 chan = vc4_state->assigned_channel;
+	struct vc4_crtc_state *vc4_state = to_vc4_crtc_state(old_state);
+	unsigned int chan = vc4_state->assigned_channel;
 
 	vc4_hvs_stop_channel(dev, chan);
 }
