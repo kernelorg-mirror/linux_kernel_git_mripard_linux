@@ -705,7 +705,7 @@ int vc4_kms_load(struct drm_device *dev)
 		return ret;
 	}
 
-	if (!of_device_is_compatible(dev->dev->of_node, "brcm,bcm2711-vc5")) {
+	if (of_device_is_compatible(dev->dev->of_node, "brcm,bcm2711-vc5")) {
 		dev->mode_config.max_width = 7680;
 		dev->mode_config.max_height = 7680;
 	} else {
