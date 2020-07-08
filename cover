@@ -15,11 +15,8 @@ Similarly, the HDMI controller has all its registers shuffled and split in
 multiple controllers now, so we need a bunch of changes to support this as
 well.
 
-Only the HDMI support is enabled for now (even though the DPI output has
-been tested too).
-
-This is based on the firmware clocks series sent separately:
-https://lore.kernel.org/lkml/cover.662a8d401787ef33780d91252a352de91dc4be10.1590594293.git-series.maxime@cerno.tech/
+Only the HDMI support is enabled for now (even though the DPI and DSI
+outputs have been tested too).
 
 Let me know if you have any comments
 Maxime
@@ -34,13 +31,20 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v3:
+  - Rebased on top of current drm-misc-next
+  - Added a name to the HDMI audio codec component
+  - Only disable the BCM2711 HDMI pixelvalves at boot
+  - Fixed an error in the HVS binding
+  - Fix a framebuffer size condition that was inverted
+  - Changed the channel allocation algorithm using Eric's suggestion
+  - Always write the muxing values instead of updating if needed
+  - Improved a bit the hvs_available_channels comment in the structure
   - Change atomic_complete_commit code to use for_each_new_crtc_in_state
   - Change the muxing code to take into account disparities between the
     BCM2711 and previous SoCs.
   - Only change the clock rate on BCM2711 during a modeset
   - Fix a crash at atomic_disable
   - Use clk_set_min_rate for the core clock too
-  - Switch VC4_SET_FIELD / VC4_GET_FIELD to FIELD_* accessors
   - Add a few defines, and simplify the FIFO level stuff
   - Reordered the patches according to Eric's reviews
   - Fixed a regression with VID_CTL setting on RPI3
