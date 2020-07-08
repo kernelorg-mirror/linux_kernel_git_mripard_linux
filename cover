@@ -31,7 +31,7 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
 Changes from v3:
-  - Rebased on top of current drm-misc-next
+  - Rebased on top of next-20200708
   - Added a name to the HDMI audio codec component
   - Only disable the BCM2711 HDMI pixelvalves at boot
   - Fixed an error in the HVS binding
