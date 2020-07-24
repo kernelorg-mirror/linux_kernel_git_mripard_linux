@@ -919,6 +919,14 @@ static int vc4_hdmi_encoder_atomic_check(struct drm_encoder *encoder,
 	    (mode->hsync_end % 2) || (mode->htotal % 2))
 		return -EINVAL;
 
+	/*
+	 * The 1440p@60 pixel rate is in the same range than the WiFi
+	 * channels. Slightly lower the frequency to bring it out of the
+	 * WiFi range.
+	 */
+	if (vc4_hdmi->disable_wifi_frequencies && mode->clock == 241500)
+		mode->clock = 238560;
+
 	if (mode->flags & DRM_MODE_FLAG_DBLCLK)
 		pixel_rate *= 2;
 
@@ -1866,6 +1874,9 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
 
 		vc4_hdmi->hpd_active_low = hpd_gpio_flags & OF_GPIO_ACTIVE_LOW;
 	}
+
+	vc4_hdmi->disable_wifi_frequencies =
+		of_property_read_bool(dev->of_node, "raspberrypi,disable-wifi-frequencies");
 
 	pm_runtime_enable(dev);
 

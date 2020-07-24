@@ -68,6 +68,12 @@ properties:
   resets:
     maxItems: 1
 
+  raspberrypi,disable-wifi-frequencies:
+    type: boolean
+    description: >
+      Should the pixel frequencies in the WiFi frequencies range be
+      avoided?
+
 required:
   - compatible
   - reg
