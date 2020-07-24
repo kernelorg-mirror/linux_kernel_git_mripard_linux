@@ -173,11 +173,13 @@
 
 &hdmi0 {
 	clocks = <&firmware_clocks 13>, <&dvp 0>;
+	raspberrypi,disable-wifi-frequencies;
 	status = "okay";
 };
 
 &hdmi1 {
 	clocks = <&firmware_clocks 13>, <&dvp 1>;
+	raspberrypi,disable-wifi-frequencies;
 	status = "okay";
 };
 
