@@ -435,8 +435,8 @@ static void vc4_hdmi_enable_scrambling(struct drm_encoder *encoder)
 	if (!vc4_hdmi_supports_scrambling(encoder, mode))
 		return;
 
-	drm_scdc_set_high_tmds_clock_ratio(vc4_hdmi->ddc, true);
 	drm_scdc_set_scrambling(vc4_hdmi->ddc, true);
+	drm_scdc_set_high_tmds_clock_ratio(vc4_hdmi->ddc, true);
 
 	HDMI_WRITE(HDMI_SCRAMBLER_CTL, HDMI_READ(HDMI_SCRAMBLER_CTL) |
 		   VC5_HDMI_SCRAMBLER_CTL_ENABLE);
@@ -450,11 +450,11 @@ static void vc4_hdmi_disable_scrambling(struct drm_encoder *encoder)
 	if (!vc4_hdmi_supports_scrambling(encoder, mode))
 		return;
 
-	drm_scdc_set_high_tmds_clock_ratio(vc4_hdmi->ddc, false);
-	drm_scdc_set_scrambling(vc4_hdmi->ddc, false);
-
 	HDMI_WRITE(HDMI_SCRAMBLER_CTL, HDMI_READ(HDMI_SCRAMBLER_CTL) &
 		   ~VC5_HDMI_SCRAMBLER_CTL_ENABLE);
+
+	drm_scdc_set_high_tmds_clock_ratio(vc4_hdmi->ddc, false);
+	drm_scdc_set_scrambling(vc4_hdmi->ddc, false);
 }
 
 static void vc4_hdmi_encoder_post_crtc_disable(struct drm_encoder *encoder,
