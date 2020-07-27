@@ -914,9 +914,9 @@ static int vc4_hdmi_encoder_atomic_check(struct drm_encoder *encoder,
 	struct vc4_hdmi *vc4_hdmi = encoder_to_vc4_hdmi(encoder);
 	unsigned long long pixel_rate = mode->clock * 1000;
 
-	if (vc4_hdmi->variant->broken_odd_h_timings ||
-	    (mode->hdisplay % 2) || (mode->hsync_start % 2) ||
-	    (mode->hsync_end % 2) || (mode->htotal % 2))
+	if (vc4_hdmi->variant->broken_odd_h_timings &&
+	    ((mode->hdisplay % 2) || (mode->hsync_start % 2) ||
+	     (mode->hsync_end % 2) || (mode->htotal % 2)))
 		return -EINVAL;
 
 	/*
@@ -949,9 +949,9 @@ vc4_hdmi_encoder_mode_valid(struct drm_encoder *encoder,
 {
 	struct vc4_hdmi *vc4_hdmi = encoder_to_vc4_hdmi(encoder);
 
-	if (vc4_hdmi->variant->broken_odd_h_timings ||
-	    (mode->hdisplay % 2) || (mode->hsync_start % 2) ||
-	    (mode->hsync_end % 2) || (mode->htotal % 2))
+	if (vc4_hdmi->variant->broken_odd_h_timings &&
+	    ((mode->hdisplay % 2) || (mode->hsync_start % 2) ||
+	     (mode->hsync_end % 2) || (mode->htotal % 2)))
 		return MODE_H_ILLEGAL;
 
 	if ((mode->clock * 1000) > vc4_hdmi->variant->max_pixel_clock)
