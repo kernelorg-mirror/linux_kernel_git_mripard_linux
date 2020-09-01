@@ -639,6 +639,10 @@ static void vc4_hdmi_encoder_pre_crtc_configure(struct drm_encoder *encoder)
 		return;
 	}
 
+	/*
+	 * FIXME: When the pixel freq is 594MHz (4k60), this needs to be setup
+	 * at 150MHz.
+	 */
 	ret = clk_set_rate(vc4_hdmi->pixel_bvb_clock,
 			(hsm_rate > VC4_HSM_MID_CLOCK ? 150000000 : 75000000));
 	if (ret) {
@@ -1605,16 +1609,16 @@ static int vc5_hdmi_init_resources(struct vc4_hdmi *vc4_hdmi)
 		return PTR_ERR(vc4_hdmi->hsm_clock);
 	}
 
-	vc4_hdmi->audio_clock = devm_clk_get(dev, "clk-108M");
-	if (IS_ERR(vc4_hdmi->audio_clock)) {
-		DRM_ERROR("Failed to get 108MHz clock\n");
-		return PTR_ERR(vc4_hdmi->audio_clock);
-	}
-
 	vc4_hdmi->pixel_bvb_clock = devm_clk_get(dev, "bvb");
 	if (IS_ERR(vc4_hdmi->pixel_bvb_clock)) {
 		DRM_ERROR("Failed to get pixel bvb clock\n");
 		return PTR_ERR(vc4_hdmi->pixel_bvb_clock);
+	}
+
+	vc4_hdmi->audio_clock = devm_clk_get(dev, "audio");
+	if (IS_ERR(vc4_hdmi->audio_clock)) {
+		DRM_ERROR("Failed to get audio clock\n");
+		return PTR_ERR(vc4_hdmi->audio_clock);
 	}
 
 	vc4_hdmi->reset = devm_reset_control_get(dev, NULL);
