@@ -42,12 +42,16 @@ properties:
   clocks:
     items:
       - description: The HDMI state machine clock
-      - description: The bvb clock
+      - description: The Pixel BVB clock
+      - description: The HDMI Audio parent clock
+      - description: The HDMI CEC parent clock
 
   clock-names:
     items:
       - const: hdmi
       - const: bvb
+      - const: audio
+      - const: cec
 
   ddc:
     allOf:
