@@ -682,9 +682,11 @@ int vc4_kms_load(struct drm_device *dev)
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	struct vc4_ctm_state *ctm_state;
 	struct vc4_load_tracker_state *load_state;
+	bool is_vc5 = of_device_is_compatible(dev->dev->of_node,
+					      "brcm,bcm2711-vc5");
 	int ret;
 
-	if (!of_device_is_compatible(dev->dev->of_node, "brcm,bcm2711-vc5")) {
+	if (!is_vc5) {
 		vc4->load_tracker_available = true;
 
 		/* Start with the load tracker enabled. Can be
@@ -705,7 +707,7 @@ int vc4_kms_load(struct drm_device *dev)
 		return ret;
 	}
 
-	if (of_device_is_compatible(dev->dev->of_node, "brcm,bcm2711-vc5")) {
+	if (is_vc5) {
 		dev->mode_config.max_width = 7680;
 		dev->mode_config.max_height = 7680;
 	} else {
