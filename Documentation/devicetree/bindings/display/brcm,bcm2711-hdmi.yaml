@@ -108,8 +108,8 @@ examples:
                     "csc",
                     "cec",
                     "hd";
-        clocks = <&firmware_clocks 13>, <&firmware_clocks 14>;
-        clock-names = "hdmi", "bvb";
+        clocks = <&firmware_clocks 13>, <&firmware_clocks 14>, <&dvp 1>, <&clk_27MHz>;
+        clock-names = "hdmi", "bvb", "audio", "cec";
         resets = <&dvp 0>;
         ddc = <&ddc0>;
     };
