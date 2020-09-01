@@ -40,10 +40,14 @@ properties:
       - const: hd
 
   clocks:
-    description: The HDMI state machine clock
+    items:
+      - description: The HDMI state machine clock
+      - description: The bvb clock
 
   clock-names:
-    const: hdmi
+    items:
+      - const: hdmi
+      - const: bvb
 
   ddc:
     allOf:
@@ -100,8 +104,8 @@ examples:
                     "csc",
                     "cec",
                     "hd";
-        clocks = <&firmware_clocks 13>;
-        clock-names = "hdmi";
+        clocks = <&firmware_clocks 13>, <&firmware_clocks 14>;
+        clock-names = "hdmi", "bvb";
         resets = <&dvp 0>;
         ddc = <&ddc0>;
     };
