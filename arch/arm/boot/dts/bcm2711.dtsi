@@ -17,6 +17,13 @@
 		status = "disabled";
 	};
 
+	clk_27MHz: clk-27M {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+		clock-output-names = "27MHz-clock";
+	};
+
 	clk_108MHz: clk-108M {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
@@ -321,7 +328,7 @@
 				    "csc",
 				    "cec",
 				    "hd";
-			clock-names = "hdmi", "clk-108M";
+			clock-names = "hdmi", "bvb", "audio", "cec";
 			resets = <&dvp 0>;
 			ddc = <&ddc0>;
 			dmas = <&dma 10>;
@@ -358,7 +365,7 @@
 				    "cec",
 				    "hd";
 			ddc = <&ddc1>;
-			clock-names = "hdmi", "clk-108M";
+			clock-names = "hdmi", "bvb", "audio", "cec";
 			resets = <&dvp 1>;
 			dmas = <&dma 17>;
 			dma-names = "audio-rx";
