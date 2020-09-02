@@ -30,6 +30,17 @@ Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
 
+Changes from v4:
+  - Rebased on top of next-20200828
+  - Collected the various tags
+  - Fixed some issues with 4k support and dual output (thanks Hoegeun!)
+  - Fixed typos in commit logs (thanks Dave!)
+  - Split the csc setup hook into its own patch again
+  - Added the CEC clock to the DT binding
+  - Fixed the DT binding example
+  - Reduced the number of calls to of_device_is_compatible in vc4_kms_load
+  - Added back the check for the state commit in our commit hook
+
 Changes from v3:
   - Rebased on top of next-20200708
   - Added a name to the HDMI audio codec component
