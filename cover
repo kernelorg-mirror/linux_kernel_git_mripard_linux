@@ -24,8 +24,6 @@ Maxime
 Cc: bcm-kernel-feedback-list@broadcom.com
 Cc: devicetree@vger.kernel.org
 Cc: Kamal Dasu <kdasu.kdev@gmail.com>
-Cc: linux-clk@vger.kernel.org
-Cc: Michael Turquette <mturquette@baylibre.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Stephen Boyd <sboyd@kernel.org>
