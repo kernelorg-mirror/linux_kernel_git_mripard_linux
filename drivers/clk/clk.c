@@ -2314,6 +2314,8 @@ int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max)
 	if (!clk)
 		return 0;
 
+	trace_clk_set_rate_range(clk->core, min, max);
+
 	if (min > max) {
 		pr_err("%s: clk %s dev %s con %s: invalid range [%lu, %lu]\n",
 		       __func__, clk->core->name, clk->dev_id, clk->con_id,
@@ -2378,6 +2380,8 @@ EXPORT_SYMBOL_GPL(clk_set_rate_range);
  */
 int clk_set_min_rate(struct clk *clk, unsigned long rate)
 {
+	trace_clk_set_min_rate(clk->core, rate);
+
 	if (!clk)
 		return 0;
 
