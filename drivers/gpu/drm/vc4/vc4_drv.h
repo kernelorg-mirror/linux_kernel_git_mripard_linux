@@ -524,6 +524,7 @@ struct vc4_crtc_state {
 	struct drm_mm_node mm;
 	bool feed_txp;
 	bool txp_armed;
+	bool needs_muxing;
 	unsigned int assigned_channel;
 
 	struct {
