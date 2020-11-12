@@ -384,7 +384,7 @@ struct drm_atomic_state {
 	 * Work item which can be used by the driver or helpers to execute the
 	 * commit without blocking.
 	 */
-	struct work_struct commit_work;
+	struct delayed_work commit_work;
 };
 
 void __drm_crtc_commit_free(struct kref *kref);

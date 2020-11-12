@@ -1679,7 +1679,7 @@ static void commit_work(struct work_struct *work)
 {
 	struct drm_atomic_state *state = container_of(work,
 						      struct drm_atomic_state,
-						      commit_work);
+						      commit_work.work);
 	commit_tail(state);
 }
 
@@ -1816,6 +1816,10 @@ int drm_atomic_helper_commit(struct drm_device *dev,
 			     struct drm_atomic_state *state,
 			     bool nonblock)
 {
+	bool has_first_crtc = false;
+	struct drm_crtc *crtc;
+	struct drm_crtc_state *crtc_state;
+	unsigned int i;
 	int ret;
 
 	if (state->async_update) {
@@ -1833,7 +1837,7 @@ int drm_atomic_helper_commit(struct drm_device *dev,
 	if (ret)
 		return ret;
 
-	INIT_WORK(&state->commit_work, commit_work);
+	INIT_DELAYED_WORK(&state->commit_work, commit_work);
 
 	ret = drm_atomic_helper_prepare_planes(dev, state);
 	if (ret)
@@ -1854,6 +1858,14 @@ int drm_atomic_helper_commit(struct drm_device *dev,
 	ret = drm_atomic_helper_swap_state(state, true);
 	if (ret)
 		goto err;
+
+	for_each_new_crtc_in_state(state, crtc, crtc_state, i) {
+		if (!crtc_state->enable)
+			continue;
+
+		if (drm_crtc_index(crtc) == 3)
+			has_first_crtc = true;
+	}
 
 	/*
 	 * Everything below can be run asynchronously without the need to grab
@@ -1876,9 +1888,13 @@ int drm_atomic_helper_commit(struct drm_device *dev,
 	 */
 
 	drm_atomic_state_get(state);
-	if (nonblock)
-		queue_work(system_unbound_wq, &state->commit_work);
-	else
+	if (nonblock) {
+		if (has_first_crtc)
+			queue_delayed_work(system_unbound_wq, &state->commit_work,
+					   msecs_to_jiffies(1000));
+		else
+			queue_delayed_work(system_unbound_wq, &state->commit_work, 0);
+	} else
 		commit_tail(state);
 
 	return 0;
