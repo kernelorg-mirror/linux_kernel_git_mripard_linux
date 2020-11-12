@@ -40,6 +40,11 @@ static struct vc4_ctm_state *to_vc4_ctm_state(struct drm_private_state *priv)
 struct vc4_hvs_state {
 	struct drm_private_state base;
 	unsigned int unassigned_channels;
+
+	struct {
+		unsigned in_use: 1;
+		struct drm_crtc_commit *last_user;
+	} fifo_state[HVS_NUM_CHANNELS];
 };
 
 static struct vc4_hvs_state *
@@ -336,6 +341,7 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
 	struct vc4_hvs *hvs = vc4->hvs;
 	struct drm_crtc_state *new_crtc_state;
 	struct drm_crtc *crtc;
+	struct vc4_hvs_state *old_hvs_state;
 	int i;
 
 	for_each_new_crtc_in_state(state, crtc, new_crtc_state, i) {
@@ -354,6 +360,30 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
 	drm_atomic_helper_wait_for_fences(dev, state, false);
 
 	drm_atomic_helper_wait_for_dependencies(state);
+
+	old_hvs_state = vc4_hvs_get_old_global_state(state);
+	if (!old_hvs_state)
+		return;
+
+	for (i = 0; i < HVS_NUM_CHANNELS; i++) {
+		struct drm_crtc_commit *commit;
+		int ret;
+
+		if (!old_hvs_state->fifo_state[i].in_use)
+			continue;
+
+		if (!old_hvs_state->fifo_state[i].last_user)
+			continue;
+
+		commit = old_hvs_state->fifo_state[i].last_user;
+		ret = wait_for_completion_timeout(&commit->hw_done, msecs_to_jiffies(2000));
+		if (!ret)
+			DRM_ERROR("ABOOOOOORT\n");
+
+		ret = wait_for_completion_timeout(&commit->flip_done, msecs_to_jiffies(2000));
+		if (!ret)
+			DRM_ERROR("DANGER ZONE\n");
+	}
 
 	drm_atomic_helper_commit_modeset_disables(dev, state);
 
@@ -412,6 +442,7 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	bool has_first_crtc = false;
 	struct drm_crtc *crtc;
 	struct drm_crtc_state *crtc_state;
+	struct vc4_hvs_state *hvs_state;
 	unsigned int i;
 	int ret;
 
@@ -435,6 +466,26 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	ret = drm_atomic_helper_setup_commit(state, nonblock);
 	if (ret)
 		return ret;
+
+	hvs_state = vc4_hvs_get_global_state(state);
+	if (!hvs_state)
+		return -EINVAL;
+
+	for_each_new_crtc_in_state(state, crtc, crtc_state, i) {
+		struct vc4_crtc_state *vc4_crtc_state =
+			to_vc4_crtc_state(crtc_state);
+		unsigned int channel =
+			vc4_crtc_state->assigned_channel;
+
+		if (channel == VC4_HVS_CHANNEL_DISABLED)
+			continue;
+
+		if (!hvs_state->fifo_state[channel].in_use)
+			continue;
+
+		hvs_state->fifo_state[channel].last_user =
+			drm_crtc_commit_get(crtc_state->commit);
+	}
 
 	INIT_DELAYED_WORK(&state->commit_work, commit_work);
 
@@ -720,12 +771,24 @@ vc4_hvs_channels_duplicate_state(struct drm_private_obj *obj)
 {
 	struct vc4_hvs_state *old_state = to_vc4_hvs_state(obj->state);
 	struct vc4_hvs_state *state;
+	unsigned int i;
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
 	if (!state)
 		return NULL;
 
 	state->unassigned_channels = old_state->unassigned_channels;
+
+	for (i = 0; i < HVS_NUM_CHANNELS; i++) {
+		state->fifo_state[i].in_use = old_state->fifo_state[i].in_use;
+
+		if (!old_state->fifo_state[i].last_user)
+			continue;
+
+		state->fifo_state[i].last_user =
+			drm_crtc_commit_get(old_state->fifo_state[i].last_user);
+	}
+
 	__drm_atomic_helper_private_obj_duplicate_state(obj, &state->base);
 
 	return &state->base;
@@ -735,6 +798,14 @@ static void vc4_hvs_channels_destroy_state(struct drm_private_obj *obj,
 					   struct drm_private_state *state)
 {
 	struct vc4_hvs_state *hvs_state = to_vc4_hvs_state(state);
+
+	unsigned int i;
+	for (i = 0; i < HVS_NUM_CHANNELS; i++) {
+		if (!hvs_state->fifo_state[i].last_user)
+			continue;
+
+		drm_crtc_commit_put(hvs_state->fifo_state[i].last_user);
+	}
 
 	kfree(hvs_state);
 }
@@ -805,7 +876,7 @@ static int vc4_pv_muxing_atomic_check(struct drm_device *dev,
 	struct drm_crtc *crtc;
 	unsigned int i;
 
-	hvs_state = vc4_hvs_get_global_state(state);
+	hvs_state = vc4_hvs_get_new_global_state(state);
 	if (!hvs_state)
 		return -EINVAL;
 
@@ -866,6 +937,7 @@ static int vc4_pv_muxing_atomic_check(struct drm_device *dev,
 		channel = ffs(matching_channels) - 1;
 		new_vc4_crtc_state->assigned_channel = channel;
 		hvs_state->unassigned_channels &= ~BIT(channel);
+		hvs_state->fifo_state[channel].in_use = true;
 	}
 
 	return 0;
