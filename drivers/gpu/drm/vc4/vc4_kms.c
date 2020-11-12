@@ -718,12 +718,14 @@ static int vc4_load_tracker_obj_init(struct vc4_dev *vc4)
 static struct drm_private_state *
 vc4_hvs_channels_duplicate_state(struct drm_private_obj *obj)
 {
+	struct vc4_hvs_state *old_state = to_vc4_hvs_state(obj->state);
 	struct vc4_hvs_state *state;
 
-	state = kmemdup(obj->state, sizeof(*state), GFP_KERNEL);
+	state = kzalloc(sizeof(*state), GFP_KERNEL);
 	if (!state)
 		return NULL;
 
+	state->unassigned_channels = old_state->unassigned_channels;
 	__drm_atomic_helper_private_obj_duplicate_state(obj, &state->base);
 
 	return &state->base;
@@ -732,9 +734,8 @@ vc4_hvs_channels_duplicate_state(struct drm_private_obj *obj)
 static void vc4_hvs_channels_destroy_state(struct drm_private_obj *obj,
 					   struct drm_private_state *state)
 {
-	struct vc4_hvs_state *hvs_state;
+	struct vc4_hvs_state *hvs_state = to_vc4_hvs_state(state);
 
-	hvs_state = to_vc4_hvs_state(state);
 	kfree(hvs_state);
 }
 
