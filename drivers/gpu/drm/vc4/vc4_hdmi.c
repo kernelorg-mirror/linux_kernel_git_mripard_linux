@@ -909,8 +909,6 @@ static int vc4_hdmi_encoder_atomic_check(struct drm_encoder *encoder,
 		pixel_rate = pixel_rate * 125;
 	do_div(pixel_rate, 100);
 
-	if (pixel_rate > vc4_hdmi->variant->max_pixel_clock)
-		return -EINVAL;
 
 	vc4_state->pixel_rate = pixel_rate;
 
