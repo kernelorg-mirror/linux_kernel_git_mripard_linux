@@ -903,9 +903,10 @@ static int vc4_hdmi_encoder_atomic_check(struct drm_encoder *encoder,
 	}
 
 	if (conn_state->max_bpc == 12)
-		pixel_rate *= 150 / 100;
+		pixel_rate = pixel_rate * 150;
 	else if (conn_state->max_bpc == 10)
-		pixel_rate *= 125 / 100;
+		pixel_rate = pixel_rate * 125;
+	do_div(pixel_rate, 100);
 
 	if (pixel_rate > vc4_hdmi->variant->max_pixel_clock)
 		return -EINVAL;
