@@ -95,6 +95,9 @@ static void brcmstb_l2_intc_irq_handle(struct irq_desc *desc)
 	unsigned int irq;
 	u32 status;
 
+	pr_crit("%s +%d %x\n", __func__, __LINE__,
+		irq_reg_readl(b->gc, b->status_offset));
+
 	chained_irq_enter(chip, desc);
 
 	status = irq_reg_readl(b->gc, b->status_offset) &
