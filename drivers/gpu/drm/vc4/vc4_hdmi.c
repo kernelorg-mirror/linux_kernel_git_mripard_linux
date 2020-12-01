@@ -1467,6 +1467,7 @@ static const struct cec_adap_ops vc4_hdmi_cec_adap_ops = {
 	.adap_transmit = vc4_hdmi_cec_adap_transmit,
 };
 
+void brcmstb_hack_init(void);
 static int vc4_hdmi_cec_init(struct vc4_hdmi *vc4_hdmi)
 {
 	struct cec_connector_info conn_info;
@@ -1485,6 +1486,8 @@ static int vc4_hdmi_cec_init(struct vc4_hdmi *vc4_hdmi)
 
 	cec_fill_conn_info_from_drm(&conn_info, &vc4_hdmi->connector);
 	cec_s_conn_info(vc4_hdmi->cec_adap, &conn_info);
+
+	brcmstb_hack_init();
 
 	HDMI_WRITE(HDMI_CEC_CPU_MASK_SET, 0xffffffff);
 	value = HDMI_READ(HDMI_CEC_CNTRL_1);

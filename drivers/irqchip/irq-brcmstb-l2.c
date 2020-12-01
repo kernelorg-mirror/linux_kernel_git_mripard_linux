@@ -155,7 +155,7 @@ static void brcmstb_l2_intc_resume(struct irq_data *d)
 	irq_gc_unlock_irqrestore(gc, flags);
 }
 
-static int __init brcmstb_l2_intc_of_init(struct device_node *np,
+static int brcmstb_l2_intc_of_init(struct device_node *np,
 					  struct device_node *parent,
 					  const struct brcmstb_intc_init_params
 					  *init_params)
@@ -270,21 +270,21 @@ out_free:
 	return ret;
 }
 
-static int __init brcmstb_l2_edge_intc_of_init(struct device_node *np,
-	struct device_node *parent)
-{
-	return brcmstb_l2_intc_of_init(np, parent, &l2_edge_intc_init);
-}
-IRQCHIP_DECLARE(brcmstb_l2_intc, "brcm,l2-intc", brcmstb_l2_edge_intc_of_init);
-IRQCHIP_DECLARE(brcmstb_hif_spi_l2_intc, "brcm,hif-spi-l2-intc",
-		brcmstb_l2_edge_intc_of_init);
-IRQCHIP_DECLARE(brcmstb_upg_aux_aon_l2_intc, "brcm,upg-aux-aon-l2-intc",
-		brcmstb_l2_edge_intc_of_init);
+void brcmstb_hack_init(void) {
+	struct device_node *irqchip;
+	struct device_node *parent;
 
-static int __init brcmstb_l2_lvl_intc_of_init(struct device_node *np,
-	struct device_node *parent)
-{
-	return brcmstb_l2_intc_of_init(np, parent, &l2_lvl_intc_init);
+	irqchip = of_find_compatible_node(NULL, NULL, "brcm,bcm2711-l2-intc");
+	if (!irqchip) {
+		pr_crit("%s +%d Couldn't find the l2 interrupt controller\n", __func__, __LINE__);
+		return;
+	}
+
+	parent = of_get_parent(irqchip);
+	if (!parent) {
+		pr_crit("%s +%d Couldn't find the parent\n", __func__, __LINE__);
+		return;
+	}
+
+	WARN_ON(brcmstb_l2_intc_of_init(irqchip, parent, &l2_edge_intc_init) != 0);
 }
-IRQCHIP_DECLARE(bcm7271_l2_intc, "brcm,bcm7271-l2-intc",
-	brcmstb_l2_lvl_intc_of_init);
