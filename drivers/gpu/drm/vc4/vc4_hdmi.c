@@ -1725,6 +1725,9 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
 	u32 value;
 	int ret;
 
+	if (variant->encoder_type == VC4_ENCODER_TYPE_HDMI1)
+		return 0;
+
 	vc4_hdmi = devm_kzalloc(dev, sizeof(*vc4_hdmi), GFP_KERNEL);
 	if (!vc4_hdmi)
 		return -ENOMEM;
