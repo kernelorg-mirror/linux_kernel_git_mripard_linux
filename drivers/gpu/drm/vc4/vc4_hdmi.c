@@ -744,8 +744,12 @@ static void vc4_hdmi_encoder_post_crtc_enable(struct drm_encoder *encoder)
 	vc4_hdmi_recenter_fifo(vc4_hdmi);
 }
 
+static int vc4_hdmi_cec_init(struct vc4_hdmi *vc4_hdmi);
 static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
 {
+	struct vc4_hdmi *vc4_hdmi = encoder_to_vc4_hdmi(encoder);
+
+	vc4_hdmi_cec_init(vc4_hdmi);
 }
 
 #define WIFI_2_4GHz_CH1_MIN_FREQ	2400000000ULL
@@ -1791,10 +1795,6 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
 	ret = vc4_hdmi_connector_init(drm, vc4_hdmi);
 	if (ret)
 		goto err_destroy_encoder;
-
-	ret = vc4_hdmi_cec_init(vc4_hdmi);
-	if (ret)
-		goto err_destroy_conn;
 
 	ret = vc4_hdmi_audio_init(vc4_hdmi);
 	if (ret)
