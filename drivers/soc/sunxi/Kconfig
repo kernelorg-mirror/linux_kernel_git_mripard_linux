@@ -3,6 +3,14 @@
 # Allwinner sunXi SoC drivers
 #
 
+config SUN50I_H6_EMCE
+	tristate "Allwinner H6 Embedded Crypto Engine"
+	depends on BLK_INLINE_ENCRYPTION
+	default ARCH_SUNXI
+	help
+	  Say y to enable the Embedded Crypto Engine that allows the
+	  inline encryption for the NAND and eMMC.
+
 config SUNXI_MBUS
 	bool
 	default ARCH_SUNXI
