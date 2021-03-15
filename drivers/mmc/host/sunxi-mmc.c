@@ -37,6 +37,8 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 
+#include <linux/soc/sunxi/sun50i_h6_emce.h>
+
 /* register offset definitions */
 #define SDXC_REG_GCTRL	(0x00) /* SMC Global Control Register */
 #define SDXC_REG_CLKCR	(0x04) /* SMC Clock Control Register */
@@ -73,6 +75,9 @@
 #define SDXC_REG_DRV_DL		0x140 /* Drive Delay Control Register */
 #define SDXC_REG_SAMP_DL_REG	0x144 /* SMC sample delay control */
 #define SDXC_REG_DS_DL_REG	0x148 /* SMC data strobe delay control */
+
+/* New registers introduced with the H6 */
+#define SDXC_REG_EMCE		0x64 /* SMC EMCE Control Register */
 
 #define mmc_readl(host, reg) \
 	readl((host)->reg_base + SDXC_##reg)
@@ -301,6 +306,8 @@ struct sunxi_mmc_host {
 
 	/* timings */
 	bool		use_new_timings;
+
+	struct emce	*emce;
 };
 
 static int sunxi_mmc_reset_host(struct sunxi_mmc_host *host)
@@ -1067,6 +1074,11 @@ static void sunxi_mmc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 		imask |= SDXC_COMMAND_DONE;
 	}
 
+	if (mrq->crypto_enabled)
+		mmc_writel(host, REG_EMCE, BIT(0) | BIT(4) | (0x200 << 16));
+	else
+		mmc_writel(host, REG_EMCE, 0);
+
 	dev_dbg(mmc_dev(mmc), "cmd %d(%08x) arg %x ie 0x%08x len %d\n",
 		cmd_val & 0x3f, cmd_val, cmd->arg, imask,
 		mrq->data ? mrq->data->blksz * mrq->data->blocks : 0);
@@ -1353,6 +1365,52 @@ error_disable_mmc:
 	return ret;
 }
 
+static inline struct sunxi_mmc_host *
+sunxi_mmc_host_from_ksm(struct blk_keyslot_manager *ksm)
+{
+       struct mmc_host *mmc = container_of(ksm, struct mmc_host, ksm);
+
+       return mmc_priv(mmc);
+}
+
+static int sunxi_mmc_keyslot_program(struct blk_keyslot_manager *ksm,
+				     const struct blk_crypto_key *key,
+				     unsigned int slot)
+{
+	struct sunxi_mmc_host *host = sunxi_mmc_host_from_ksm(ksm);
+	struct emce_key emce_key = {};
+	int ret;
+
+	if (key->crypto_cfg.crypto_mode != BLK_ENCRYPTION_MODE_AES_256_XTS)
+		return -EINVAL;
+
+	emce_key.cipher = SUN50I_H6_EMCE_AES_XTS;
+	emce_key.length = 256;
+	emce_key.iv_length = 256;
+	emce_key.key = &key->raw;
+
+	ret = sun50i_h6_emce_program_key(host->emce, &emce_key);
+	memzero_explicit(&emce_key, sizeof(emce_key));
+
+	return ret;
+}
+
+static int sunxi_mmc_keyslot_evict(struct blk_keyslot_manager *ksm,
+				   const struct blk_crypto_key *key,
+				   unsigned int slot)
+{
+	struct sunxi_mmc_host *host = sunxi_mmc_host_from_ksm(ksm);
+
+	sun50i_h6_emce_clear_key(host->emce);
+
+	return 0;
+}
+
+static const struct blk_ksm_ll_ops sunxi_mmc_ksm_ops = {
+	.keyslot_program	= sunxi_mmc_keyslot_program,
+	.keyslot_evict		= sunxi_mmc_keyslot_evict,
+};
+
 static int sunxi_mmc_probe(struct platform_device *pdev)
 {
 	struct sunxi_mmc_host *host;
@@ -1449,6 +1507,27 @@ static int sunxi_mmc_probe(struct platform_device *pdev)
 
 	/* TODO: This driver doesn't support HS400 mode yet */
 	mmc->caps2 &= ~MMC_CAP2_HS400;
+
+	if (of_device_is_compatible(pdev->dev.of_node, "allwinner,sun50i-h6-emmc")) {
+		host->emce = devm_sun50i_h6_emce_get(&pdev->dev);
+		if (IS_ERR(host->emce))
+			return PTR_ERR(host->emce);
+
+		ret = sun50i_h6_emce_claim(host->emce);
+		if (ret)
+			return ret;
+
+		ret = devm_blk_ksm_init(&pdev->dev, &mmc->ksm, 1);
+		if (ret)
+			goto error_free_dma;
+
+		mmc->caps2 |= MMC_CAP2_CRYPTO;
+
+		mmc->ksm.ksm_ll_ops = sunxi_mmc_ksm_ops;
+		mmc->ksm.dev = &pdev->dev;
+		mmc->ksm.max_dun_bytes_supported = 256;
+		mmc->ksm.crypto_modes_supported[BLK_ENCRYPTION_MODE_AES_256_XTS] = 512 | 1024 | 2048 | 4096;
+	}
 
 	ret = sunxi_mmc_init_host(host);
 	if (ret)
