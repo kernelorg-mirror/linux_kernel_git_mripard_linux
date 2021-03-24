@@ -45,18 +45,14 @@ void sun50i_h6_emce_clear_key(struct emce *emce)
 
 	memset_io(priv->base + EMCE_SALT_REG(0),
 		  0, EMCE_SALT_MAX_SIZE / 8);
-
-	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 }
 
 int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 {
 	struct emce_priv *priv = emce->priv;
 
-	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 	u32 mode = readl(priv->base + 0x80) & ~GENMASK(11, 0);
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	switch (key->cipher) {
 	case SUN50I_H6_EMCE_AES_ECB:
 		mode |= EMCE_MODE_MODE(0);
@@ -71,7 +67,6 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 		return -EINVAL;
 	}
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	switch (key->length) {
 	case 128:
 		mode |= EMCE_MODE_KEY_LEN(0);
@@ -86,7 +81,6 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 		return -EINVAL;
 	}
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	switch (key->iv_length) {
 	case 128:
 		mode |= EMCE_MODE_IV_KEY_LEN(0);
@@ -101,14 +95,12 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 		return -EINVAL;
 	}
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	sun50i_h6_emce_clear_key(emce);
 
 	u32 *key_ptr = key->key;
 	size_t idx = 0;
 	size_t count = 0;
 	while (count < 256) {
-		pr_crit("%s +%d idx %d\n", __func__, __LINE__, idx);
 		writel(*key_ptr++, priv->base + EMCE_KEY_REG(idx++));
 		count += 32;
 	}
@@ -121,7 +113,6 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 	}
 
 	writel(mode, priv->base + 0x80);
-	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 
 	return 0;
 }
@@ -133,8 +124,6 @@ int sun50i_h6_emce_claim(struct emce *emce)
 
 	reg = readl(priv->base + 0x80) & ~BIT(12);
 	writel(reg | EMCE_MODE_SRC(emce->id), priv->base + 0x80);
-
-	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 
 	return 0;
 }
@@ -176,30 +165,25 @@ static int sun50i_h6_emce_probe(struct platform_device *pdev)
 	struct emce_priv *priv;
 	struct resource *res;
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(priv->base))
 		return PTR_ERR(priv->base);
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	priv->rst = devm_reset_control_get_exclusive(&pdev->dev, NULL);
 	if (IS_ERR(priv->rst))
 		return PTR_ERR(priv->rst);
 	reset_control_deassert(priv->rst);
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	priv->bus_clk = devm_clk_get(&pdev->dev, "bus");
 	if (IS_ERR(priv->bus_clk))
 		return PTR_ERR(priv->bus_clk);
 	clk_prepare_enable(priv->bus_clk);
 
-	pr_crit("%s +%d\n", __func__, __LINE__);
 	priv->mod_clk = devm_clk_get(&pdev->dev, "mod");
 	if (IS_ERR(priv->mod_clk))
 		return PTR_ERR(priv->mod_clk);
@@ -207,8 +191,6 @@ static int sun50i_h6_emce_probe(struct platform_device *pdev)
 	clk_set_rate(priv->mod_clk, 300000000);
 
 	emce_global = priv;
-
-	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 
 	return 0;
 }
