@@ -8,7 +8,8 @@
 
 #include <linux/soc/sunxi/sun50i_h6_emce.h>
 
-#define EMCE_MASTER_KEY_REG(idx)	(0x00 + (idx) * 4)
+#define EMCE_KEY_REG(idx)		(0x00 + (idx) * 4)
+#define EMCE_SALT_REG(idx)		(0x40 + (idx) * 4)
 
 #define EMCE_MODE_REG			0x80
 #define EMCE_MODE_SRC(val)			(((val) << 12) & GENMASK(12, 12))
@@ -16,7 +17,8 @@
 #define EMCE_MODE_KEY_LEN(val)			(((val) << 4) & GENMASK(5, 4))
 #define EMCE_MODE_MODE(val)			((val) & GENMASK(3, 0))
 
-#define EMCE_MASTER_KEY_MAX_SIZE	256
+#define EMCE_KEY_MAX_SIZE	256
+#define EMCE_SALT_MAX_SIZE	256
 
 struct emce_priv {
 	void __iomem	*base;
@@ -38,8 +40,11 @@ void sun50i_h6_emce_clear_key(struct emce *emce)
 {
 	struct emce_priv *priv = emce->priv;
 
-	memset_io(priv->base + EMCE_MASTER_KEY_REG(0),
-		  0, EMCE_MASTER_KEY_MAX_SIZE / 8);
+	memset_io(priv->base + EMCE_KEY_REG(0),
+		  0, EMCE_KEY_MAX_SIZE / 8);
+
+	memset_io(priv->base + EMCE_SALT_REG(0),
+		  0, EMCE_SALT_MAX_SIZE / 8);
 
 	pr_crit("%s +%d 0x%x\n", __func__, __LINE__, readl(priv->base + 0x80));
 }
@@ -99,13 +104,20 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 	pr_crit("%s +%d\n", __func__, __LINE__);
 	sun50i_h6_emce_clear_key(emce);
 
+	u32 *key_ptr = key->key;
 	size_t idx = 0;
 	size_t count = 0;
-	while (count < key->length) {
+	while (count < 256) {
 		pr_crit("%s +%d idx %d\n", __func__, __LINE__, idx);
-		writel(((u32*)key->key)[idx], priv->base + EMCE_MASTER_KEY_REG(idx));
+		writel(*key_ptr++, priv->base + EMCE_KEY_REG(idx++));
 		count += 32;
-		idx += 1;
+	}
+
+	count = 0;
+	idx = 0;
+	while (count < 256) {
+		writel(*key_ptr++, priv->base + EMCE_SALT_REG(idx++));
+		count += 32;
 	}
 
 	writel(mode, priv->base + 0x80);
