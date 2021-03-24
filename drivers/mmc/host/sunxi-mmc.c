@@ -1075,7 +1075,7 @@ static void sunxi_mmc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	}
 
 	if (mrq->crypto_enabled)
-		mmc_writel(host, REG_EMCE, BIT(0) | BIT(4) | (0x200 << 16));
+		mmc_writel(host, REG_EMCE, BIT(0) | BIT(4) | (4096 << 16));
 	else
 		mmc_writel(host, REG_EMCE, 0);
 

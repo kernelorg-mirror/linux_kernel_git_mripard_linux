@@ -52,6 +52,8 @@ int sun50i_h6_emce_program_key(struct emce *emce, const struct emce_key *key)
 	struct emce_priv *priv = emce->priv;
 
 	u32 mode = readl(priv->base + 0x80) & ~GENMASK(11, 0);
+	mode &= ~GENMASK(31, 16);
+	mode |= 4096 << 16;
 
 	switch (key->cipher) {
 	case SUN50I_H6_EMCE_AES_ECB:
