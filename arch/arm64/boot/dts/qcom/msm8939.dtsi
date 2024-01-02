@@ -1418,6 +1418,7 @@
 			power-domains = <&gcc OXILI_GDSC>;
 			operating-points-v2 = <&opp_table>;
 			iommus = <&gpu_iommu 1>, <&gpu_iommu 2>;
+			#cooling-cells = <2>;
 
 			opp_table: opp-table {
 				compatible = "operating-points-v2";
@@ -2393,6 +2394,13 @@
 			polling-delay-passive = <250>;
 
 			thermal-sensors = <&tsens 3>;
+
+			cooling-maps {
+				map0 {
+					trip = <&gpu_alert0>;
+					cooling-device = <&gpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
 
 			trips {
 				gpu_alert0: trip-point0 {
