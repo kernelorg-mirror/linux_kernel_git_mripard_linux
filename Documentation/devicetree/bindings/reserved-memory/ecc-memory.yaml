@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/reserved-memory/ecc-memory.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: ECC-Protected Memory
+
+description: |
+  This binding represents a reserved memory region containing memory
+  protected by ECC.
+
+maintainers:
+  - Maxime Ripard <mripard@kernel.org>
+
+allOf:
+  - $ref: reserved-memory.yaml
+
+properties:
+  compatible:
+    const: ecc-memory
+
+  reg:
+    description: page-aligned region of ECC-protected memory
+
+required:
+  - compatible
+  - reg
+
+unevaluatedProperties: false
+
+examples:
+  - |
+    reserved-memory {
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        region@12340000 {
+            compatible = "ecc-memory";
+            reg = <0x12340000 0x2000>;
+        };
+    };
