@@ -1,3 +1,11 @@
+config DMABUF_HEAPS_ECC
+	bool "DMA-BUF ECC Protected Heap"
+	depends on DMABUF_HEAPS
+	help
+	  Choose this option to enable the ECC dmabuf heap. The ECC heap is
+	  backed by pages from an ECC protected memory region. If in doubt,
+	  say Y.
+
 config DMABUF_HEAPS_SYSTEM
 	bool "DMA-BUF System Heap"
 	depends on DMABUF_HEAPS
