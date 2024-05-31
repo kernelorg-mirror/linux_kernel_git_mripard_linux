@@ -1588,8 +1588,6 @@
 				snps,has-lpm-erratum;
 				snps,hird-threshold = /bits/ 8 <0x10>;
 				snps,usb3_lpm_capable;
-				maximum-speed = "super-speed";
-				dr_mode = "otg";
 				usb-role-switch;
 
 				port {

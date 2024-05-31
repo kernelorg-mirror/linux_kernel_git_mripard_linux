@@ -522,10 +522,6 @@
 	status = "okay";
 };
 
-&usb_dwc3 {
-	dr_mode = "host";
-};
-
 &usb_hsphy {
 	vdd-supply = <&vreg_l4a_0p9>;
 	vdda-pll-supply = <&vreg_l12a_1p8>;
