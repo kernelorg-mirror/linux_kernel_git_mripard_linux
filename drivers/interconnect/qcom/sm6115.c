@@ -1220,6 +1220,7 @@ static const struct qcom_icc_desc sm6115_bimc = {
 	.bus_clk_desc = &bimc_clk,
 	.keep_alive = true,
 	.qos_offset = 0x8000,
+	.ab_coeff = 153,
 };
 
 static struct qcom_icc_node * const config_noc_nodes[] = {
