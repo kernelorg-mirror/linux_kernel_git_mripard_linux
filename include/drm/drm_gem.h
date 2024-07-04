@@ -432,6 +432,8 @@ struct drm_gem_object {
 	 * The current LRU list that the GEM object is on.
 	 */
 	struct drm_gem_lru *lru;
+
+	struct dmem_cgroup_pool_state *cgroup_pool_state;
 };
 
 /**

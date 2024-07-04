@@ -106,6 +106,12 @@ __drm_gem_dma_create(struct drm_device *drm, size_t size, bool private)
 		goto error;
 	}
 
+	ret = dmem_cgroup_try_charge(dma_get_dmem_cgroup_region(drm->dev),
+				     size,
+				     &dma_obj->base.cgroup_pool_state, NULL);
+	if (ret)
+		goto error;
+
 	return dma_obj;
 
 error:

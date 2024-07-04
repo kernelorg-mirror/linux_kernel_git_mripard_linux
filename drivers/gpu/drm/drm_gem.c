@@ -110,6 +110,7 @@ drm_gem_init(struct drm_device *dev)
 				    DRM_FILE_PAGE_OFFSET_START,
 				    DRM_FILE_PAGE_OFFSET_SIZE);
 
+
 	return drmm_add_action(dev, drm_gem_init_release, NULL);
 }
 
@@ -975,6 +976,10 @@ drm_gem_release(struct drm_device *dev, struct drm_file *file_private)
 void
 drm_gem_object_release(struct drm_gem_object *obj)
 {
+
+	if (obj->cgroup_pool_state)
+		dmem_cgroup_uncharge(obj->cgroup_pool_state, obj->size);
+
 	if (obj->filp)
 		fput(obj->filp);
 

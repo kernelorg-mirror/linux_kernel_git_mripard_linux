@@ -1,6 +1,7 @@
 #ifndef _DRM_DEVICE_H_
 #define _DRM_DEVICE_H_
 
+#include <linux/cgroup_dmem.h>
 #include <linux/list.h>
 #include <linux/kref.h>
 #include <linux/mutex.h>
