@@ -439,6 +439,11 @@ struct dma_buf {
 
 		__poll_t active;
 	} cb_in, cb_out;
+
+#ifdef CONFIG_CGROUP_DMEM
+	struct dmem_cgroup_pool_state *cgroup_pool;
+#endif
+
 #ifdef CONFIG_DMABUF_SYSFS_STATS
 	/**
 	 * @sysfs_entry:
