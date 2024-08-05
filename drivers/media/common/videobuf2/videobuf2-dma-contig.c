@@ -10,6 +10,7 @@
  * the Free Software Foundation.
  */
 
+#include <linux/cgroup_dmem.h>
 #include <linux/dma-buf.h>
 #include <linux/module.h>
 #include <linux/refcount.h>
@@ -41,6 +42,10 @@ struct vb2_dc_buf {
 
 	/* DMABUF related */
 	struct dma_buf_attachment	*db_attach;
+
+#ifdef CONFIG_CGROUP_DMEM
+	struct dmem_cgroup_pool_state	*cgroup_pool_state;
+#endif
 
 	struct vb2_buffer		*vb;
 	bool				non_coherent_mem;
@@ -171,6 +176,10 @@ static void vb2_dc_put(void *buf_priv)
 	if (!refcount_dec_and_test(&buf->refcount))
 		return;
 
+#ifdef CONFIG_CGROUP_DMEM
+	dmem_cgroup_uncharge(buf->cgroup_pool_state, buf->size);
+#endif
+
 	if (buf->non_coherent_mem) {
 		if (buf->vaddr)
 			dma_vunmap_noncontiguous(buf->dev, buf->vaddr);
@@ -232,6 +241,7 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
 			  struct device *dev,
 			  unsigned long size)
 {
+	struct dmem_cgroup_pool_state *pool;
 	struct vb2_dc_buf *buf;
 	int ret;
 
@@ -251,6 +261,10 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
 	/* Prevent the device from being released while the buffer is used */
 	buf->dev = get_device(dev);
 
+	ret = dmem_cgroup_try_charge(dma_get_dmem_cgroup_region(dev), size, &pool, NULL);
+	if (ret)
+		return ret;
+
 	if (buf->non_coherent_mem)
 		ret = vb2_dc_alloc_non_coherent(buf);
 	else
@@ -258,6 +272,7 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
 
 	if (ret) {
 		dev_err(dev, "dma alloc of size %lu failed\n", size);
+		dmem_cgroup_uncharge(pool, size);
 		kfree(buf);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -265,6 +280,10 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
 	buf->handler.refcount = &buf->refcount;
 	buf->handler.put = vb2_dc_put;
 	buf->handler.arg = buf;
+
+#ifdef CONFIG_CGROUP_DMEM
+	buf->cgroup_pool_state = pool;
+#endif
 
 	refcount_set(&buf->refcount, 1);
 
