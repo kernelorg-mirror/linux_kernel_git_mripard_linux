@@ -23,6 +23,7 @@
 #include <linux/slab.h>
 #include <linux/log2.h>
 #include <linux/cma.h>
+#include <linux/cgroup_dmem.h>
 #include <linux/highmem.h>
 #include <linux/io.h>
 #include <linux/kmemleak.h>
@@ -91,12 +92,21 @@ static void cma_clear_bitmap(struct cma *cma, unsigned long pfn,
 
 static void __init cma_activate_area(struct cma *cma)
 {
+	struct dmem_cgroup_region *region;
 	unsigned long base_pfn = cma->base_pfn, pfn;
 	struct zone *zone;
 
+	region = dmem_cgroup_register_region(cma_get_size(cma), "cma/%s", cma->name);
+	if (IS_ERR(region))
+		goto out_error;
+
+#ifdef CONFIG_CGROUP_DMEM
+	cma->dmem_cgrp_region = region;
+#endif
+
 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
 	if (!cma->bitmap)
-		goto out_error;
+		goto unreg_dmem;
 
 	/*
 	 * alloc_contig_range() requires the pfn range specified to be in the
@@ -126,6 +136,8 @@ static void __init cma_activate_area(struct cma *cma)
 
 not_in_zone:
 	bitmap_free(cma->bitmap);
+unreg_dmem:
+	dmem_cgroup_unregister_region(region);
 out_error:
 	/* Expose all pages to the buddy, they are useless for CMA. */
 	if (!cma->reserve_pages_on_error) {
