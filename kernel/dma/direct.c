@@ -44,6 +44,14 @@ u64 dma_direct_get_required_mask(struct device *dev)
 	return (1ULL << (fls64(max_dma) - 1)) * 2 - 1;
 }
 
+#if IS_ENABLED(CONFIG_CGROUP_DMEM)
+struct dmem_cgroup_region *
+dma_direct_get_dmem_cgroup_region(struct device *dev)
+{
+	return dma_contiguous_get_dmem_cgroup_region(dev);
+}
+#endif
+
 static gfp_t dma_direct_optimal_gfp_mask(struct device *dev, u64 *phys_limit)
 {
 	u64 dma_limit = min_not_zero(
