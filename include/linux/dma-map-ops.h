@@ -6,6 +6,7 @@
 #ifndef _LINUX_DMA_MAP_OPS_H
 #define _LINUX_DMA_MAP_OPS_H
 
+#include <linux/cma.h>
 #include <linux/dma-mapping.h>
 #include <linux/pgtable.h>
 #include <linux/slab.h>
@@ -154,6 +155,26 @@ static inline void dma_free_contiguous(struct device *dev, struct page *page,
 	__free_pages(page, get_order(size));
 }
 #endif /* CONFIG_DMA_CMA*/
+
+#if IS_ENABLED(CONFIG_DMA_CMA) && IS_ENABLED(CONFIG_CGROUP_DMEM)
+
+static inline struct dmem_cgroup_region *
+dma_contiguous_get_dmem_cgroup_region(struct device *dev)
+{
+	struct cma *cma = dev_get_cma_area(dev);
+
+	return cma_get_dmem_cgroup_region(cma);
+}
+
+#else /* IS_ENABLED(CONFIG_DMA_CMA) && IS_ENABLED(CONFIG_CGROUP_DMEM) */
+
+static inline struct dmem_cgroup_region *
+dma_contiguous_get_dmem_cgroup_region(struct device *dev)
+{
+	return NULL;
+}
+
+#endif /* IS_ENABLED(CONFIG_DMA_CMA) && IS_ENABLED(CONFIG_CGROUP_DMEM) */
 
 #ifdef CONFIG_DMA_DECLARE_COHERENT
 int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
