@@ -7,6 +7,7 @@
  */
 #include <linux/memblock.h> /* for max_pfn */
 #include <linux/acpi.h>
+#include <linux/cgroup_dmem.h>
 #include <linux/dma-map-ops.h>
 #include <linux/export.h>
 #include <linux/gfp.h>
@@ -25,6 +26,10 @@
 	defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU) || \
 	defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
 bool dma_default_coherent = IS_ENABLED(CONFIG_ARCH_DMA_DEFAULT_COHERENT);
+#endif
+
+#if IS_ENABLED(CONFIG_CGROUP_DMEM)
+static struct dmem_cgroup_region *default_dmem_cgroup_region;
 #endif
 
 /*
@@ -588,6 +593,24 @@ u64 dma_get_required_mask(struct device *dev)
 	return DMA_BIT_MASK(32);
 }
 EXPORT_SYMBOL_GPL(dma_get_required_mask);
+
+#if IS_ENABLED(CONFIG_CGROUP_DMEM)
+static int __init dma_init_dmem_cgroup(void)
+{
+	struct dmem_cgroup_region *region;
+
+	if (default_dmem_cgroup_region)
+		return -EBUSY;
+
+	region = dmem_cgroup_register_region(U64_MAX, "dma/global");
+	if (IS_ERR(region))
+		return PTR_ERR(region);
+
+	default_dmem_cgroup_region = region;
+	return 0;
+}
+core_initcall(dma_init_dmem_cgroup);
+#endif
 
 void *dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
 		gfp_t flag, unsigned long attrs)
