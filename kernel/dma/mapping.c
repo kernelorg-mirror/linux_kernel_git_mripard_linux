@@ -610,6 +610,22 @@ static int __init dma_init_dmem_cgroup(void)
 	return 0;
 }
 core_initcall(dma_init_dmem_cgroup);
+
+struct dmem_cgroup_region *
+dma_get_dmem_cgroup_region(struct device *dev)
+{
+	struct dmem_cgroup_region *region;
+
+	region = dma_coherent_get_dmem_cgroup_region(dev);
+	if (region)
+		return region;
+
+	if (dma_alloc_direct(dev, get_dma_ops(dev)))
+		return dma_direct_get_dmem_cgroup_region(dev);
+
+	return default_dmem_cgroup_region;
+}
+EXPORT_SYMBOL(dma_get_dmem_cgroup_region);
 #endif
 
 void *dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,

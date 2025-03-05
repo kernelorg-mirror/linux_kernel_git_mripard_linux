@@ -353,6 +353,17 @@ static inline bool dma_need_sync(struct device *dev, dma_addr_t dma_addr)
 }
 #endif /* !CONFIG_HAS_DMA || !CONFIG_DMA_NEED_SYNC */
 
+#if IS_ENABLED(CONFIG_HAS_DMA) && IS_ENABLED(CONFIG_CGROUP_DMEM)
+struct dmem_cgroup_region *
+dma_get_dmem_cgroup_region(struct device *dev);
+#else
+static inline struct dmem_cgroup_region *
+dma_get_dmem_cgroup_region(struct device *dev)
+{
+	return NULL;
+}
+#endif
+
 struct page *dma_alloc_pages(struct device *dev, size_t size,
 		dma_addr_t *dma_handle, enum dma_data_direction dir, gfp_t gfp);
 void dma_free_pages(struct device *dev, size_t size, struct page *page,
