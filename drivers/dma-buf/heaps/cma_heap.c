@@ -9,6 +9,7 @@
  * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com/
  *	Andrew F. Davis <afd@ti.com>
  */
+#include <linux/cgroup_dmem.h>
 #include <linux/cma.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-heap.h>
@@ -278,6 +279,7 @@ static struct dma_buf *cma_heap_allocate(struct dma_heap *heap,
 					 u64 heap_flags)
 {
 	struct cma_heap *cma_heap = dma_heap_get_drvdata(heap);
+	struct dmem_cgroup_pool_state *pool;
 	struct cma_heap_buffer *buffer;
 	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
 	size_t size = PAGE_ALIGN(len);
@@ -288,9 +290,16 @@ static struct dma_buf *cma_heap_allocate(struct dma_heap *heap,
 	int ret = -ENOMEM;
 	pgoff_t pg;
 
+	ret = dmem_cgroup_try_charge(cma_get_dmem_cgroup_region(cma_heap->cma),
+				     size, &pool, NULL);
+	if (ret)
+		return ERR_PTR(ret);
+
 	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
-	if (!buffer)
-		return ERR_PTR(-ENOMEM);
+	if (!buffer) {
+		ret = -ENOMEM;
+		goto uncharge_cgroup;
+	}
 
 	INIT_LIST_HEAD(&buffer->attachments);
 	mutex_init(&buffer->lock);
@@ -350,6 +359,9 @@ static struct dma_buf *cma_heap_allocate(struct dma_heap *heap,
 		ret = PTR_ERR(dmabuf);
 		goto free_pages;
 	}
+
+	dmabuf->cgroup_pool = pool;
+
 	return dmabuf;
 
 free_pages:
@@ -358,6 +370,8 @@ free_cma:
 	cma_release(cma_heap->cma, cma_pages, pagecount);
 free_buffer:
 	kfree(buffer);
+uncharge_cgroup:
+	dmem_cgroup_uncharge(pool, len);
 
 	return ERR_PTR(ret);
 }
