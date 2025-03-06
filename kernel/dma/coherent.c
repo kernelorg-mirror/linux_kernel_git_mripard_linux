@@ -7,6 +7,7 @@
 #include <linux/slab.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/cgroup_dmem.h>
 #include <linux/dma-direct.h>
 #include <linux/dma-map-ops.h>
 
@@ -18,6 +19,8 @@ struct dma_coherent_mem {
 	unsigned long	*bitmap;
 	spinlock_t	spinlock;
 	bool		use_dev_dma_pfn_offset;
+
+	struct dmem_cgroup_region *dmem_cgroup_region;
 };
 
 static inline struct dma_coherent_mem *dev_get_coherent_memory(struct device *dev)
@@ -337,12 +340,21 @@ static phys_addr_t dma_reserved_default_memory_size __initdata;
 static int rmem_dma_device_init(struct reserved_mem *rmem, struct device *dev)
 {
 	if (!rmem->priv) {
+		struct dmem_cgroup_region *region;
 		struct dma_coherent_mem *mem;
 
 		mem = dma_init_coherent_memory(rmem->base, rmem->base,
 					       rmem->size, true);
 		if (IS_ERR(mem))
 			return PTR_ERR(mem);
+
+		region = dmem_cgroup_register_region(rmem->size,
+						     "dma/coherent/%s",
+						     rmem->name);
+		if (IS_ERR(region))
+			return PTR_ERR(region);
+
+		mem->dmem_cgroup_region = region;
 		rmem->priv = mem;
 	}
 	dma_assign_coherent_memory(dev, rmem->priv);
