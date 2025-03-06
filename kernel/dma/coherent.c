@@ -30,6 +30,20 @@ static inline struct dma_coherent_mem *dev_get_coherent_memory(struct device *de
 	return NULL;
 }
 
+#if IS_ENABLED(CONFIG_CGROUP_DMEM)
+struct dmem_cgroup_region *
+dma_coherent_get_dmem_cgroup_region(struct device *dev)
+{
+	struct dma_coherent_mem *mem;
+
+	mem = dev_get_coherent_memory(dev);
+	if (!mem)
+		return NULL;
+
+	return mem->dmem_cgroup_region;
+}
+#endif
+
 static inline dma_addr_t dma_get_device_base(struct device *dev,
 					     struct dma_coherent_mem * mem)
 {

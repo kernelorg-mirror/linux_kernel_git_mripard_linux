@@ -201,6 +201,17 @@ static inline int dma_mmap_from_global_coherent(struct vm_area_struct *vma,
 }
 #endif /* CONFIG_DMA_GLOBAL_POOL */
 
+#if IS_ENABLED(CONFIG_CGROUP_DMEM) && IS_ENABLED(CONFIG_DMA_DECLARE_COHERENT)
+struct dmem_cgroup_region *
+dma_coherent_get_dmem_cgroup_region(struct device *dev);
+#else /* CONFIG_CGROUP_DMEM && CONFIG_DMA_DECLARE_COHERENT */
+static inline struct dmem_cgroup_region *
+dma_coherent_get_dmem_cgroup_region(struct device *dev)
+{
+	return NULL;
+}
+#endif /* CONFIG_CGROUP_DMEM && CONFIG_DMA_DECLARE_COHERENT */
+
 int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
 		void *cpu_addr, dma_addr_t dma_addr, size_t size,
 		unsigned long attrs);
