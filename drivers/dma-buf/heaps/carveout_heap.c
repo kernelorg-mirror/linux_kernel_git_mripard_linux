@@ -16,6 +16,7 @@ struct carveout_heap_buffer_priv {
 
 	unsigned long num_pages;
 	struct carveout_heap_priv *heap;
+	dma_addr_t daddr;
 	void *vaddr;
 };
 
@@ -199,6 +200,7 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	}
 
 	buffer_priv->vaddr = vaddr;
+	buffer_priv->daddr = daddr;
 	buffer_priv->heap = heap_priv;
 	buffer_priv->num_pages = size >> PAGE_SHIFT;
 
