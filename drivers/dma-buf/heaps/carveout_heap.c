@@ -34,6 +34,7 @@ static int carveout_heap_attach(struct dma_buf *buf,
 	struct carveout_heap_buffer_priv *priv = buf->priv;
 	struct carveout_heap_attachment *a;
 	struct sg_table *sgt;
+	unsigned long len = priv->num_pages * PAGE_SIZE;
 	int ret;
 
 	a = kzalloc(sizeof(*a), GFP_KERNEL);
@@ -47,6 +48,9 @@ static int carveout_heap_attach(struct dma_buf *buf,
 	ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
 	if (ret)
 		goto err_cleanup_attach;
+
+	sg_dma_address(sgt->sgl) = priv->daddr;
+	sg_dma_len(sgt->sgl) = len;
 
 	mutex_lock(&priv->lock);
 	list_add(&a->head, &priv->attachments);
