@@ -3,6 +3,7 @@
 #include <linux/dma-buf.h>
 #include <linux/dma-heap.h>
 #include <linux/genalloc.h>
+#include <linux/highmem.h>
 #include <linux/of_reserved_mem.h>
 
 struct carveout_heap_priv {
@@ -18,6 +19,7 @@ struct carveout_heap_buffer_priv {
 	struct carveout_heap_priv *heap;
 	dma_addr_t daddr;
 	void *vaddr;
+	unsigned int vmap_cnt;
 };
 
 struct carveout_heap_attachment {
@@ -110,8 +112,12 @@ carveout_heap_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
 {
 	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
 	struct carveout_heap_attachment *a;
+	unsigned long len = priv->num_pages * PAGE_SIZE;
 
 	mutex_lock(&priv->lock);
+
+	if (priv->vmap_cnt > 0)
+		invalidate_kernel_vmap_range(priv->vaddr, len);
 
 	list_for_each_entry(a, &priv->attachments, head) {
 		if (!a->mapped)
@@ -131,8 +137,12 @@ carveout_heap_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 {
 	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
 	struct carveout_heap_attachment *a;
+	unsigned long len = priv->num_pages * PAGE_SIZE;
 
 	mutex_lock(&priv->lock);
+
+	if (priv->vmap_cnt > 0)
+		flush_kernel_vmap_range(priv->vaddr, len);
 
 	list_for_each_entry(a, &priv->attachments, head) {
 		if (!a->mapped)
@@ -157,6 +167,32 @@ static int carveout_heap_mmap(struct dma_buf *dmabuf,
 			       len, vma->vm_page_prot);
 }
 
+static int carveout_heap_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
+{
+	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
+
+	mutex_lock(&priv->lock);
+
+	iosys_map_set_vaddr(map, priv->vaddr);
+	priv->vmap_cnt++;
+
+	mutex_unlock(&priv->lock);
+
+	return 0;
+}
+
+static void carveout_heap_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
+{
+	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
+
+	mutex_lock(&priv->lock);
+
+	priv->vmap_cnt--;
+	mutex_unlock(&priv->lock);
+
+	iosys_map_clear(map);
+}
+
 static void carveout_heap_dma_buf_release(struct dma_buf *buf)
 {
 	struct carveout_heap_buffer_priv *buffer_priv = buf->priv;
@@ -175,6 +211,8 @@ static const struct dma_buf_ops carveout_heap_buf_ops = {
 	.begin_cpu_access	= carveout_heap_dma_buf_begin_cpu_access,
 	.end_cpu_access	= carveout_heap_dma_buf_end_cpu_access,
 	.mmap		= carveout_heap_mmap,
+	.vmap		= carveout_heap_vmap,
+	.vunmap		= carveout_heap_vunmap,
 	.release	= carveout_heap_dma_buf_release,
 };
 
