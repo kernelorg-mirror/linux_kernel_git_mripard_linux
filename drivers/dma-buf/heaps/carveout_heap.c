@@ -16,7 +16,7 @@ struct carveout_heap_buffer_priv {
 
 	unsigned long num_pages;
 	struct carveout_heap_priv *heap;
-	void *buffer;
+	void *vaddr;
 };
 
 struct carveout_heap_attachment {
@@ -144,7 +144,7 @@ static int carveout_heap_mmap(struct dma_buf *dmabuf,
 {
 	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
 	unsigned long len = priv->num_pages * PAGE_SIZE;
-	struct page *page = virt_to_page(priv->buffer);
+	struct page *page = virt_to_page(priv->vaddr);
 
 	return remap_pfn_range(vma, vma->vm_start, page_to_pfn(page),
 			       len, vma->vm_page_prot);
@@ -182,7 +182,7 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	struct dma_buf *buf;
 	dma_addr_t daddr;
 	size_t size = PAGE_ALIGN(len);
-	void *buffer;
+	void *vaddr;
 	int ret;
 
 	buffer_priv = kzalloc(sizeof(*buffer_priv), GFP_KERNEL);
@@ -192,13 +192,13 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	INIT_LIST_HEAD(&buffer_priv->attachments);
 	mutex_init(&buffer_priv->lock);
 
-	buffer = gen_pool_dma_zalloc(heap_priv->pool, size, &daddr);
-	if (!buffer) {
+	vaddr = gen_pool_dma_zalloc(heap_priv->pool, size, &daddr);
+	if (!vaddr) {
 		ret = -ENOMEM;
 		goto err_free_buffer_priv;
 	}
 
-	buffer_priv->buffer = buffer;
+	buffer_priv->vaddr = vaddr;
 	buffer_priv->heap = heap_priv;
 	buffer_priv->num_pages = size >> PAGE_SHIFT;
 
@@ -218,7 +218,7 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	return buf;
 
 err_free_buffer:
-	gen_pool_free(heap_priv->pool, (unsigned long)buffer, len);
+	gen_pool_free(heap_priv->pool, (unsigned long)vaddr, len);
 err_free_buffer_priv:
 	kfree(buffer_priv);
 
