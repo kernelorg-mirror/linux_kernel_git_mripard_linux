@@ -14,7 +14,6 @@ struct carveout_heap_buffer_priv {
 	struct mutex lock;
 	struct list_head attachments;
 
-	unsigned long len;
 	unsigned long num_pages;
 	struct carveout_heap_priv *heap;
 	void *buffer;
@@ -144,19 +143,20 @@ static int carveout_heap_mmap(struct dma_buf *dmabuf,
 			      struct vm_area_struct *vma)
 {
 	struct carveout_heap_buffer_priv *priv = dmabuf->priv;
+	unsigned long len = priv->num_pages * PAGE_SIZE;
 	struct page *page = virt_to_page(priv->buffer);
 
 	return remap_pfn_range(vma, vma->vm_start, page_to_pfn(page),
-			       priv->num_pages * PAGE_SIZE, vma->vm_page_prot);
+			       len, vma->vm_page_prot);
 }
 
 static void carveout_heap_dma_buf_release(struct dma_buf *buf)
 {
 	struct carveout_heap_buffer_priv *buffer_priv = buf->priv;
 	struct carveout_heap_priv *heap_priv = buffer_priv->heap;
+	unsigned long len = buffer_priv->num_pages * PAGE_SIZE;
 
-	gen_pool_free(heap_priv->pool, (unsigned long)buffer_priv->buffer,
-		      buffer_priv->len);
+	gen_pool_free(heap_priv->pool, (unsigned long)buffer_priv->vaddr, len);
 	kfree(buffer_priv);
 }
 
@@ -181,6 +181,7 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
 	struct dma_buf *buf;
 	dma_addr_t daddr;
+	size_t size = PAGE_ALIGN(len);
 	void *buffer;
 	int ret;
 
@@ -191,7 +192,7 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 	INIT_LIST_HEAD(&buffer_priv->attachments);
 	mutex_init(&buffer_priv->lock);
 
-	buffer = gen_pool_dma_zalloc(heap_priv->pool, len, &daddr);
+	buffer = gen_pool_dma_zalloc(heap_priv->pool, size, &daddr);
 	if (!buffer) {
 		ret = -ENOMEM;
 		goto err_free_buffer_priv;
@@ -199,13 +200,12 @@ static struct dma_buf *carveout_heap_allocate(struct dma_heap *heap,
 
 	buffer_priv->buffer = buffer;
 	buffer_priv->heap = heap_priv;
-	buffer_priv->len = len;
-	buffer_priv->num_pages = len / PAGE_SIZE;
+	buffer_priv->num_pages = size >> PAGE_SHIFT;
 
 	/* create the dmabuf */
 	exp_info.exp_name = dma_heap_get_name(heap);
 	exp_info.ops = &carveout_heap_buf_ops;
-	exp_info.size = buffer_priv->len;
+	exp_info.size = size;
 	exp_info.flags = fd_flags;
 	exp_info.priv = buffer_priv;
 
