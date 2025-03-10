@@ -242,6 +242,12 @@
 		wlan-en-gpios = <&tlmm 20 GPIO_ACTIVE_HIGH>;
 	};
 
+	custom_heap: qcom,memory-heap {
+		compatible = "qcom,memory-heap";
+		memory-region = <&ja_carveout_heap1>;
+		qcom,memory-fixed;
+	};
+
 };
 
 &adsp {

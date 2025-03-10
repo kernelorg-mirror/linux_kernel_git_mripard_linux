@@ -766,6 +766,16 @@
 			no-map;
 		};
 
+		ja_carveout_heap_a: memory@80600000 {
+			reg = <0x0 0x80600000 0x0  0x400000>;   //4MB Carveout Region
+			export;   // Makes it accessible via dma-buf
+		};
+
+		ja_carveout_heap1: memory@8C000000 {
+			reg = <0x0 0x8C000000 0x0 0x1000000>;  // 16M Carveout Region
+			export;   // Makes it accessible via dma-buf
+		};
+
 		xbl_aop_mem: memory@80700000 {
 			reg = <0x0 0x80700000 0x0 0x160000>;
 			no-map;
