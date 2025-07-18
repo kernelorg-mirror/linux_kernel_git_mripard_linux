@@ -12,9 +12,11 @@
 #include <drm/drm_fourcc.h>
 #include <drm/drm_framebuffer.h>
 #include <drm/drm_gem_atomic_helper.h>
+#include <drm/drm_gem_framebuffer_helper.h>
 
 #include "tidss_crtc.h"
 #include "tidss_dispc.h"
+#include "tidss_dispc_regs.h"
 #include "tidss_drv.h"
 #include "tidss_plane.h"
 
@@ -175,13 +177,203 @@ static const struct drm_plane_helper_funcs tidss_primary_plane_helper_funcs = {
 	.get_scanout_buffer = drm_fb_dma_get_scanout_buffer,
 };
 
+static const struct drm_framebuffer_funcs tidss_plane_readout_fb_funcs = {
+	.destroy	= drm_gem_fb_destroy,
+};
+
+static struct drm_framebuffer *tidss_plane_readout_fb(struct drm_plane *plane)
+{
+	struct drm_device *ddev = plane->dev;
+	struct tidss_device *tidss = to_tidss(ddev);
+	struct dispc_device *dispc = tidss->dispc;
+	struct tidss_plane *tplane = to_tidss_plane(plane);
+	const struct drm_format_info *info;
+	struct drm_framebuffer *fb;
+	u32 fourcc, val;
+	int ret;
+
+	fb = kzalloc(sizeof(*fb), GFP_KERNEL);
+	if (!fb)
+		return ERR_PTR(-ENOMEM);
+
+	fb->dev = plane->dev;
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_ATTRIBUTES);
+	fourcc =
+		dispc_plane_find_fourcc_by_dss_code(FIELD_GET(DISPC_VID_ATTRIBUTES_FORMAT_MASK,
+							      val));
+	if (!fourcc) {
+		ret = -EINVAL;
+		goto err_free_fb;
+	}
+
+	info = drm_format_info(fourcc);
+	if (!info) {
+		ret = -EINVAL;
+		goto err_free_fb;
+	}
+
+	// TODO: Figure out YUV and multiplanar formats
+	if (info->is_yuv) {
+		ret = -EINVAL;
+		goto err_free_fb;
+	}
+
+	fb->format = info;
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_PICTURE_SIZE);
+	fb->width = FIELD_GET(DISPC_VID_PICTURE_SIZE_MEMSIZEX_MASK, val) + 1;
+	fb->height = FIELD_GET(DISPC_VID_PICTURE_SIZE_MEMSIZEY_MASK, val) + 1;
+
+	// TODO: Figure that out.
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_ROW_INC);
+	if (val != 1) {
+		ret = -EINVAL;
+		goto err_free_fb;
+	}
+
+	fb->pitches[0] = fb->width * (drm_format_info_bpp(info, 0) / 8);
+
+	// TODO: Figure out the offsets
+	fb->offsets[0] = 0;
+
+	ret = drm_framebuffer_init(plane->dev, fb, &tidss_plane_readout_fb_funcs);
+	if (ret) {
+		kfree(fb);
+		return ERR_PTR(ret);
+	}
+
+	return fb;
+
+err_free_fb:
+	kfree(fb);
+	return ERR_PTR(ret);
+}
+
+static struct drm_crtc *tidss_plane_readout_crtc(struct drm_plane *plane)
+{
+	struct drm_device *dev = plane->dev;
+
+	if (dev->num_crtcs != 1)
+		return ERR_PTR(-EINVAL);
+
+	return list_first_entry(&dev->mode_config.crtc_list, struct drm_crtc, head);
+}
+
+static struct drm_plane_state *tidss_plane_atomic_readout_state(struct drm_plane *plane,
+								struct drm_atomic_state *state)
+{
+	struct drm_device *ddev = plane->dev;
+	struct tidss_device *tidss = to_tidss(ddev);
+	struct dispc_device *dispc = tidss->dispc;
+	struct tidss_plane *tplane = to_tidss_plane(plane);
+	struct drm_plane_state *plane_state;
+	struct drm_crtc_state *crtc_state;
+	struct drm_framebuffer *fb;
+	struct drm_crtc *crtc;
+	bool lite = dispc->feat->vid_info[tplane->hw_plane_id].is_lite;
+	u16 in_w, in_h;
+	u32 val;
+	int ret;
+
+	if (plane->state)
+		drm_atomic_helper_plane_destroy_state(plane, plane->state);
+
+	plane_state = kzalloc(sizeof(*plane_state), GFP_KERNEL);
+	if (!plane_state)
+		return ERR_PTR(-ENOMEM);
+
+	__drm_atomic_helper_plane_state_reset(plane_state, plane);
+
+	tidss_runtime_get(tidss);
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_ATTRIBUTES);
+	if (!FIELD_GET(DISPC_VID_ATTRIBUTES_ENABLE_MASK, val)) {
+		goto out;
+	}
+
+	fb = tidss_plane_readout_fb(plane);
+	if (IS_ERR(fb)) {
+		ret = PTR_ERR(fb);
+		goto err_runtime_pm;
+	}
+
+	crtc = tidss_plane_readout_crtc(plane);
+	if (IS_ERR(crtc)) {
+		ret = PTR_ERR(crtc);
+		goto err_runtime_pm;
+	}
+
+	plane_state->fb = fb;
+	plane_state->crtc = crtc;
+	plane_state->visible = true;
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_PICTURE_SIZE);
+	in_w = FIELD_GET(DISPC_VID_PICTURE_SIZE_MEMSIZEX_MASK, val) + 1;
+	in_h = FIELD_GET(DISPC_VID_PICTURE_SIZE_MEMSIZEY_MASK, val) + 1;
+	plane_state->src_w = in_w << 16;
+	plane_state->src_h = in_h << 16;
+
+	if (!lite) {
+		val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_SIZE);
+		plane_state->crtc_w = FIELD_GET(DISPC_VID_SIZE_SIZEX_MASK, val) + 1;
+		plane_state->crtc_h = FIELD_GET(DISPC_VID_SIZE_SIZEY_MASK, val) + 1;
+	} else {
+		plane_state->crtc_w = in_w;
+		plane_state->crtc_h = in_h;
+	}
+
+	// TODO: Handle crtc_x/crtc_x/src_x/src_y
+	// crtc_x/crtc_y are handled by DISPC_OVR_ATTRIBUTES / OVR1_DSS_ATTRIBUTES
+
+	// TODO: Handle zpos, see DISPC_OVR_ATTRIBUTES / OVR1_DSS_ATTRIBUTES
+
+	plane_state->src.x1 = 0;
+	plane_state->src.x2 = plane_state->src_w;
+	plane_state->src.y1 = 0;
+	plane_state->src.y2 = plane_state->src_h;
+	plane_state->dst.x1 = 0;
+	plane_state->dst.x2 = plane_state->crtc_w;
+	plane_state->dst.y1 = 0;
+	plane_state->dst.y2 = plane_state->crtc_h;
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_GLOBAL_ALPHA);
+	plane_state->alpha = FIELD_GET(DISPC_VID_GLOBAL_ALPHA_GLOBALALPHA_MASK, val) << 16;
+
+	val = dispc_vid_read(dispc, tplane->hw_plane_id, DISPC_VID_ATTRIBUTES);
+	if (FIELD_GET(DISPC_VID_ATTRIBUTES_PREMULTIPLYALPHA_MASK, val))
+		plane_state->pixel_blend_mode = DRM_MODE_BLEND_PREMULTI;
+	else
+		plane_state->pixel_blend_mode = DRM_MODE_BLEND_COVERAGE;
+
+	// TODO: If YUV, handle color encoding and range
+
+	crtc_state = drm_atomic_get_old_crtc_state(state, crtc);
+	if (!crtc_state) {
+		ret = -ENODEV;
+		goto err_runtime_pm;
+	}
+
+	crtc_state->plane_mask |= drm_plane_mask(plane);
+
+out:
+	tidss_runtime_put(tidss);
+	return plane_state;
+
+err_runtime_pm:
+	tidss_runtime_put(tidss);
+	kfree(plane_state);
+	return ERR_PTR(ret);
+}
+
 static const struct drm_plane_funcs tidss_plane_funcs = {
 	.update_plane = drm_atomic_helper_update_plane,
 	.disable_plane = drm_atomic_helper_disable_plane,
-	.reset = drm_atomic_helper_plane_reset,
 	.destroy = drm_plane_destroy,
+	.atomic_compare_state = drm_atomic_helper_plane_compare_state,
 	.atomic_duplicate_state = drm_atomic_helper_plane_duplicate_state,
 	.atomic_destroy_state = drm_atomic_helper_plane_destroy_state,
+	.atomic_readout_state = tidss_plane_atomic_readout_state,
 };
 
 struct tidss_plane *tidss_plane_create(struct tidss_device *tidss,

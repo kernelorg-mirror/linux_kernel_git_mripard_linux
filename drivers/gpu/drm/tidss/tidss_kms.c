@@ -39,7 +39,8 @@ static void tidss_atomic_commit_tail(struct drm_atomic_state *old_state)
 }
 
 static const struct drm_mode_config_helper_funcs mode_config_helper_funcs = {
-	.atomic_commit_tail = tidss_atomic_commit_tail,
+	.atomic_commit_tail	= tidss_atomic_commit_tail,
+	.atomic_reset		= drm_atomic_helper_readout_state,
 };
 
 static int tidss_atomic_check(struct drm_device *ddev,
