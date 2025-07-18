@@ -506,7 +506,7 @@ void dispc_vid_write(struct dispc_device *dispc, u32 hw_plane, u16 reg, u32 val)
 	iowrite32(val, base + reg);
 }
 
-static u32 dispc_vid_read(struct dispc_device *dispc, u32 hw_plane, u16 reg)
+u32 dispc_vid_read(struct dispc_device *dispc, u32 hw_plane, u16 reg)
 {
 	void __iomem *base = dispc->base_vid[hw_plane];
 
@@ -540,7 +540,7 @@ static void dispc_vp_write(struct dispc_device *dispc, u32 hw_videoport,
 	iowrite32(val, base + reg);
 }
 
-static u32 dispc_vp_read(struct dispc_device *dispc, u32 hw_videoport, u16 reg)
+u32 dispc_vp_read(struct dispc_device *dispc, u32 hw_videoport, u16 reg)
 {
 	void __iomem *base = dispc->base_vp[hw_videoport];
 
