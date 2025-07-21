@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
+dtb-y += qemu-virt.dtb
+dtb-y += qemu-virt-with-dt.dtb
 dtb-$(CONFIG_ARCH_VEXPRESS) += \
 	foundation-v8.dtb foundation-v8-psci.dtb \
 	foundation-v8-gicv3.dtb foundation-v8-gicv3-psci.dtb

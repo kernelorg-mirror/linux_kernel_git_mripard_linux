@@ -1,0 +1,11 @@
+#include "qemu-virt.dts"
+
+
+&{/reserved-memory} {
+	region@48000000 {
+		compatible = "shared-dma-pool";
+		reg = <0x00 0x48000000 0x00 0x1000000>;
+		linux,cma-default;
+		reusable;
+	};
+};
