@@ -478,39 +478,6 @@ const struct dispc_features dispc_am62l_feats = {
 
 static const u16 *dispc_common_regmap;
 
-struct dss_vp_data {
-	u32 *gamma_table;
-};
-
-struct dispc_device {
-	struct tidss_device *tidss;
-	struct device *dev;
-
-	void __iomem *base_common;
-	void __iomem *base_vid[TIDSS_MAX_PLANES];
-	void __iomem *base_ovr[TIDSS_MAX_PORTS];
-	void __iomem *base_vp[TIDSS_MAX_PORTS];
-
-	struct regmap *am65x_oldi_io_ctrl;
-
-	struct clk *vp_clk[TIDSS_MAX_PORTS];
-
-	const struct dispc_features *feat;
-
-	struct clk *fclk;
-
-	bool is_enabled;
-
-	struct dss_vp_data vp_data[TIDSS_MAX_PORTS];
-
-	u32 *fourccs;
-	u32 num_fourccs;
-
-	u32 memory_bandwidth_limit;
-
-	struct dispc_errata errata;
-};
-
 static void CH(struct dispc_device *dispc)
 {
 	WARN_ON((dispc->dev->power.runtime_status != RPM_ACTIVE) &&
