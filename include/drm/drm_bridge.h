@@ -1020,6 +1020,23 @@ struct drm_bridge_funcs {
 				    bool enable, int direction);
 
 	/**
+	 * @connector_hw_readout:
+	 *
+	 * Initializes the &struct drm_connector_state based on hardware
+	 * state.
+	 *
+	 * This callback is optional, it can be implemented by bridges
+	 * that set the @DRM_BRIDGE_OP_CONNECTOR_HW_READOUT flag in
+	 * their &drm_bridge->ops.
+	 *
+	 * Returns:
+	 * 0 on success, a negative error code otherwise
+	 */
+	int (*connector_hw_readout)(struct drm_bridge *bridge,
+				    struct drm_atomic_state *state,
+				    struct drm_connector_state *conn_state);
+
+	/**
 	 * @debugfs_init:
 	 *
 	 * Allows bridges to create bridge-specific debugfs files.
@@ -1140,6 +1157,10 @@ enum drm_bridge_ops {
 	 * to be present.
 	 */
 	DRM_BRIDGE_OP_HDMI_CEC_ADAPTER = BIT(8),
+	/**
+	 * @DRM_BRIDGE_OP_CONNECTOR_HW_READOUT: TODO
+	 */
+	DRM_BRIDGE_OP_CONNECTOR_HW_READOUT = BIT(9),
 };
 
 /**
