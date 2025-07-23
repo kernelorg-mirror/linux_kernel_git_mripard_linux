@@ -372,9 +372,27 @@ drm_bridge_atomic_destroy_priv_state(struct drm_private_obj *obj,
 	bridge->funcs->atomic_destroy_state(bridge, state);
 }
 
+static void
+drm_bridge_atomic_print_priv_state(struct drm_printer *p,
+				   const struct drm_private_state *s)
+{
+	const struct drm_bridge_state *state =
+		container_of_const(s, struct drm_bridge_state, base);
+	struct drm_bridge *bridge = drm_priv_to_bridge(s->obj);
+
+	drm_printf(p, "bridge: %s", drm_get_connector_type_name(bridge->type));
+	drm_printf(p, "\tinput bus configuration:");
+	drm_printf(p, "\t\tcode: %04x", state->input_bus_cfg.format);
+	drm_printf(p, "\t\tflags: %08x", state->input_bus_cfg.flags);
+	drm_printf(p, "\toutput bus configuration:");
+	drm_printf(p, "\t\tcode: %04x", state->output_bus_cfg.format);
+	drm_printf(p, "\t\tflags: %08x", state->output_bus_cfg.flags);
+}
+
 static const struct drm_private_state_funcs drm_bridge_priv_state_funcs = {
 	.atomic_duplicate_state = drm_bridge_atomic_duplicate_priv_state,
 	.atomic_destroy_state = drm_bridge_atomic_destroy_priv_state,
+	.atomic_print_state = drm_bridge_atomic_print_priv_state,
 };
 
 static bool drm_bridge_is_atomic(struct drm_bridge *bridge)
