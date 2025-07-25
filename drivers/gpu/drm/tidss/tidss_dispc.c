@@ -611,7 +611,7 @@ void tidss_disable_oldi(struct tidss_device *tidss, u32 hw_videoport)
 
 static u32 FLD_VAL(u32 val, u32 start, u32 end)
 {
-	return (val << end) & GENMASK(start, end);
+	return FIELD_PREP(GENMASK(start, end), val);
 }
 
 static u32 FLD_GET(u32 val, u32 start, u32 end)
