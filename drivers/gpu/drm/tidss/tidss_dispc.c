@@ -609,24 +609,19 @@ void tidss_disable_oldi(struct tidss_device *tidss, u32 hw_videoport)
  * number. For example 7:0
  */
 
-static u32 FLD_MASK(u32 start, u32 end)
-{
-	return ((1 << (start - end + 1)) - 1) << end;
-}
-
 static u32 FLD_VAL(u32 val, u32 start, u32 end)
 {
-	return (val << end) & FLD_MASK(start, end);
+	return (val << end) & GENMASK(start, end);
 }
 
 static u32 FLD_GET(u32 val, u32 start, u32 end)
 {
-	return (val & FLD_MASK(start, end)) >> end;
+	return (val & GENMASK(start, end)) >> end;
 }
 
 static u32 FLD_MOD(u32 orig, u32 val, u32 start, u32 end)
 {
-	return (orig & ~FLD_MASK(start, end)) | FLD_VAL(val, start, end);
+	return (orig & ~GENMASK(start, end)) | FLD_VAL(val, start, end);
 }
 
 static u32 REG_GET(struct dispc_device *dispc, u32 idx, u32 start, u32 end)
