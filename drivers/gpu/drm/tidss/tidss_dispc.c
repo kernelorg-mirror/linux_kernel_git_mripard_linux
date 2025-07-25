@@ -614,11 +614,6 @@ static u32 FLD_VAL(u32 val, u32 start, u32 end)
 	return FIELD_PREP(GENMASK(start, end), val);
 }
 
-static u32 FLD_GET(u32 val, u32 start, u32 end)
-{
-	return (val & GENMASK(start, end)) >> end;
-}
-
 static u32 FLD_MOD(u32 orig, u32 val, u32 start, u32 end)
 {
 	return (orig & ~GENMASK(start, end)) | FLD_VAL(val, start, end);
@@ -626,7 +621,7 @@ static u32 FLD_MOD(u32 orig, u32 val, u32 start, u32 end)
 
 static u32 REG_GET(struct dispc_device *dispc, u32 idx, u32 start, u32 end)
 {
-	return FLD_GET(dispc_read(dispc, idx), start, end);
+	return FIELD_GET(GENMASK(start, end), dispc_read(dispc, idx));
 }
 
 static void REG_FLD_MOD(struct dispc_device *dispc, u32 idx, u32 val,
@@ -639,7 +634,8 @@ static void REG_FLD_MOD(struct dispc_device *dispc, u32 idx, u32 val,
 static u32 VID_REG_GET(struct dispc_device *dispc, u32 hw_plane, u32 idx,
 		       u32 start, u32 end)
 {
-	return FLD_GET(dispc_vid_read(dispc, hw_plane, idx), start, end);
+	return FIELD_GET(GENMASK(start, end),
+			 dispc_vid_read(dispc, hw_plane, idx));
 }
 
 static void VID_REG_FLD_MOD(struct dispc_device *dispc, u32 hw_plane, u32 idx,
@@ -653,7 +649,7 @@ static void VID_REG_FLD_MOD(struct dispc_device *dispc, u32 hw_plane, u32 idx,
 static u32 VP_REG_GET(struct dispc_device *dispc, u32 vp, u32 idx,
 		      u32 start, u32 end)
 {
-	return FLD_GET(dispc_vp_read(dispc, vp, idx), start, end);
+	return FIELD_GET(GENMASK(start, end), dispc_vp_read(dispc, vp, idx));
 }
 
 static void VP_REG_FLD_MOD(struct dispc_device *dispc, u32 vp, u32 idx, u32 val,
