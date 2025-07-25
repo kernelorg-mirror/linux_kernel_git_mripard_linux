@@ -626,10 +626,9 @@ static void REG_FLD_MOD(struct dispc_device *dispc, u32 idx, u32 val, u32 mask)
 }
 
 static u32 VID_REG_GET(struct dispc_device *dispc, u32 hw_plane, u32 idx,
-		       u32 start, u32 end)
+		       u32 mask)
 {
-	return FIELD_GET(GENMASK(start, end),
-			 dispc_vid_read(dispc, hw_plane, idx));
+	return FIELD_GET(mask, dispc_vid_read(dispc, hw_plane, idx));
 }
 
 static void VID_REG_FLD_MOD(struct dispc_device *dispc, u32 hw_plane, u32 idx,
@@ -2310,7 +2309,8 @@ void dispc_plane_enable(struct dispc_device *dispc, u32 hw_plane, bool enable)
 
 static u32 dispc_vid_get_fifo_size(struct dispc_device *dispc, u32 hw_plane)
 {
-	return VID_REG_GET(dispc, hw_plane, DISPC_VID_BUF_SIZE_STATUS, 15, 0);
+	return VID_REG_GET(dispc, hw_plane, DISPC_VID_BUF_SIZE_STATUS,
+			   GENMASK(15, 0));
 }
 
 static void dispc_vid_set_mflag_threshold(struct dispc_device *dispc,
