@@ -609,10 +609,9 @@ void tidss_disable_oldi(struct tidss_device *tidss, u32 hw_videoport)
  * number. For example 7:0
  */
 
-static u32 FLD_MOD(u32 orig, u32 val, u32 start, u32 end)
+static u32 FLD_MOD(u32 orig, u32 val, u32 mask)
 {
-	return (orig & ~GENMASK(start, end)) | FIELD_PREP(GENMASK(start, end),
-							  val);
+	return (orig & ~mask) | FIELD_PREP(mask, val);
 }
 
 static u32 REG_GET(struct dispc_device *dispc, u32 idx, u32 start, u32 end)
@@ -623,8 +622,8 @@ static u32 REG_GET(struct dispc_device *dispc, u32 idx, u32 start, u32 end)
 static void REG_FLD_MOD(struct dispc_device *dispc, u32 idx, u32 val,
 			u32 start, u32 end)
 {
-	dispc_write(dispc, idx, FLD_MOD(dispc_read(dispc, idx), val,
-					start, end));
+	dispc_write(dispc, idx,
+		    FLD_MOD(dispc_read(dispc, idx), val, GENMASK(start, end)));
 }
 
 static u32 VID_REG_GET(struct dispc_device *dispc, u32 hw_plane, u32 idx,
@@ -638,8 +637,7 @@ static void VID_REG_FLD_MOD(struct dispc_device *dispc, u32 hw_plane, u32 idx,
 			    u32 val, u32 start, u32 end)
 {
 	dispc_vid_write(dispc, hw_plane, idx,
-			FLD_MOD(dispc_vid_read(dispc, hw_plane, idx),
-				val, start, end));
+			FLD_MOD(dispc_vid_read(dispc, hw_plane, idx), val, GENMASK(start, end)));
 }
 
 static u32 VP_REG_GET(struct dispc_device *dispc, u32 vp, u32 idx,
@@ -651,16 +649,15 @@ static u32 VP_REG_GET(struct dispc_device *dispc, u32 vp, u32 idx,
 static void VP_REG_FLD_MOD(struct dispc_device *dispc, u32 vp, u32 idx, u32 val,
 			   u32 start, u32 end)
 {
-	dispc_vp_write(dispc, vp, idx, FLD_MOD(dispc_vp_read(dispc, vp, idx),
-					       val, start, end));
+	dispc_vp_write(dispc, vp, idx,
+		       FLD_MOD(dispc_vp_read(dispc, vp, idx), val, GENMASK(start, end)));
 }
 
 static void OVR_REG_FLD_MOD(struct dispc_device *dispc, u32 ovr, u32 idx,
 			    u32 val, u32 start, u32 end)
 {
 	dispc_ovr_write(dispc, ovr, idx,
-			FLD_MOD(dispc_ovr_read(dispc, ovr, idx),
-				val, start, end));
+			FLD_MOD(dispc_ovr_read(dispc, ovr, idx), val, GENMASK(start, end)));
 }
 
 static dispc_irq_t dispc_vp_irq_from_raw(u32 stat, u32 hw_videoport)
@@ -1157,7 +1154,8 @@ static void dispc_enable_am65x_oldi(struct dispc_device *dispc, u32 hw_videoport
 
 	oldi_cfg |= BIT(7); /* DEPOL */
 
-	oldi_cfg = FLD_MOD(oldi_cfg, fmt->am65x_oldi_mode_reg_val, 3, 1);
+	oldi_cfg = FLD_MOD(oldi_cfg, fmt->am65x_oldi_mode_reg_val,
+			   GENMASK(3, 1));
 
 	oldi_cfg |= BIT(12); /* SOFTRST */
 
