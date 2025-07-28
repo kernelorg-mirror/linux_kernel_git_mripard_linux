@@ -2031,7 +2031,7 @@ void drm_atomic_helper_commit_tail_rpm(struct drm_atomic_state *state)
 }
 EXPORT_SYMBOL(drm_atomic_helper_commit_tail_rpm);
 
-static void commit_tail(struct drm_atomic_state *state)
+static void commit_tail(struct drm_atomic_state *state, bool nonblock)
 {
 	struct drm_device *dev = state->dev;
 	const struct drm_mode_config_helper_funcs *funcs;
@@ -2089,7 +2089,7 @@ static void commit_work(struct work_struct *work)
 	struct drm_atomic_state *state = container_of(work,
 						      struct drm_atomic_state,
 						      commit_work);
-	commit_tail(state);
+	commit_tail(state, true);
 }
 
 /**
@@ -2309,7 +2309,7 @@ int drm_atomic_helper_commit(struct drm_device *dev,
 	if (nonblock)
 		queue_work(system_dfl_wq, &state->commit_work);
 	else
-		commit_tail(state);
+		commit_tail(state, false);
 
 	return 0;
 
