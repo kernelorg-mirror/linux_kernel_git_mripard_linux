@@ -46,6 +46,51 @@
 #include "drm_crtc_internal.h"
 #include "drm_internal.h"
 
+/**
+ * DOC: state lifetime
+ *
+ * &struct drm_atomic_state represents an update to video pipeline state.
+ *
+ * Its lifetime is:
+ *
+ * - at reset time, the entity reset implementation will allocate a
+ *   new, default, state and will store it in the entity state pointer.
+ *
+ * - whenever a new update is needed:
+ *
+ *   + we allocate a new &struct drm_atomic_state using drm_atomic_state_alloc().
+ *
+ *   + we copy the state of each affected entity into our &struct
+ *     drm_atomic_state using drm_atomic_get_plane_state(),
+ *     drm_atomic_get_crtc_state(), drm_atomic_get_connector_state(), or
+ *     drm_atomic_get_private_obj_state(). That state can then be
+ *     modified.
+ *
+ *     At that point, &struct drm_atomic_state stores three state
+ *     pointers for that particular entity: the old, new, and existing
+ *     (called "state") states. The old state is the state currently
+ *     active in the hardware, ie either the one initialized by reset()
+ *     or a newer one if a commit has been made. The new state is the
+ *     state we just allocated and we might eventually commit to the
+ *     hardware. The existing state points to the state we'll eventually
+ *     have to free, the new state for now.
+ *
+ *   + Once we run a commit, it is first checked and if the check is
+ *     successful, it is committed. Part of the commit is a call to
+ *     drm_atomic_helper_swap_state() which will turn the new state into
+ *     the active state. Doing so involves updating the entity state
+ *     pointer (&drm_crtc.state or similar) to point to the new state,
+ *     and the existing state will now point to the old state, that used
+ *     to be active but isn't anymore.
+ *
+ *   + When the commit is done, and when all references to our &struct
+ *     drm_atomic_state are put, drm_atomic_state_clear() runs and will
+ *     free all the old states.
+ *
+ *   + Now, we don't have any active &struct drm_atomic_state anymore,
+ *     and only the entity active states remain allocated.
+ */
+
 void __drm_crtc_commit_free(struct kref *kref)
 {
 	struct drm_crtc_commit *commit =
