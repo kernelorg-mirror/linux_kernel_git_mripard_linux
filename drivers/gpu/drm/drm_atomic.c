@@ -251,8 +251,10 @@ void drm_atomic_state_default_clear(struct drm_atomic_state *state)
 		if (!connector)
 			continue;
 
-		connector->funcs->atomic_destroy_state(connector,
-						       state->connectors[i].state);
+		if (state->connectors[i].state)
+			connector->funcs->atomic_destroy_state(connector,
+							       state->connectors[i].state);
+
 		state->connectors[i].ptr = NULL;
 		state->connectors[i].state = NULL;
 		state->connectors[i].old_state = NULL;
@@ -266,8 +268,9 @@ void drm_atomic_state_default_clear(struct drm_atomic_state *state)
 		if (!crtc)
 			continue;
 
-		crtc->funcs->atomic_destroy_state(crtc,
-						  state->crtcs[i].state);
+		if (state->crtcs[i].state)
+			crtc->funcs->atomic_destroy_state(crtc,
+							  state->crtcs[i].state);
 
 		state->crtcs[i].ptr = NULL;
 		state->crtcs[i].state = NULL;
@@ -286,8 +289,10 @@ void drm_atomic_state_default_clear(struct drm_atomic_state *state)
 		if (!plane)
 			continue;
 
-		plane->funcs->atomic_destroy_state(plane,
-						   state->planes[i].state);
+		if (state->planes[i].state)
+			plane->funcs->atomic_destroy_state(plane,
+							       state->planes[i].state);
+
 		state->planes[i].ptr = NULL;
 		state->planes[i].state = NULL;
 		state->planes[i].old_state = NULL;
@@ -300,8 +305,10 @@ void drm_atomic_state_default_clear(struct drm_atomic_state *state)
 		if (!obj)
 			continue;
 
-		obj->funcs->atomic_destroy_state(obj,
-						 state->private_objs[i].state);
+		if (state->private_objs[i].state)
+			obj->funcs->atomic_destroy_state(obj,
+							       state->private_objs[i].state);
+
 		state->private_objs[i].ptr = NULL;
 		state->private_objs[i].state = NULL;
 		state->private_objs[i].old_state = NULL;
