@@ -1572,6 +1572,19 @@ struct drm_connector_funcs {
 	void (*destroy)(struct drm_connector *connector);
 
 	/**
+	 * @atomic_create_state:
+	 *
+	 * Allocates a pristine, initialized, state for the connector object
+	 * and returns it.
+	 *
+	 * RETURNS:
+	 *
+	 * A new, pristine, connector state instance or an error pointer
+	 * on failure.
+	 */
+	struct drm_connector_state *(*atomic_create_state)(struct drm_connector *connector);
+
+	/**
 	 * @atomic_duplicate_state:
 	 *
 	 * Duplicate the current atomic state for this connector and return it.

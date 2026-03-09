@@ -556,6 +556,25 @@ __drm_atomic_helper_connector_reset(struct drm_connector *connector,
 EXPORT_SYMBOL(__drm_atomic_helper_connector_reset);
 
 /**
+ * __drm_atomic_helper_connector_create_state - initializes connector state
+ * @connector: connector object
+ * @state: new state to initialize
+ *
+ * Initializes the newly allocated @state, usually required when
+ * initializing the drivers.
+ *
+ * @state is assumed to be zeroed.
+ *
+ * This is useful for drivers that subclass @drm_connector_state.
+ */
+void __drm_atomic_helper_connector_create_state(struct drm_connector *connector,
+						struct drm_connector_state *state)
+{
+	__drm_atomic_helper_connector_state_init(state, connector);
+}
+EXPORT_SYMBOL(__drm_atomic_helper_connector_create_state);
+
+/**
  * drm_atomic_helper_connector_reset - default &drm_connector_funcs.reset hook for connectors
  * @connector: drm connector
  *
@@ -574,6 +593,32 @@ void drm_atomic_helper_connector_reset(struct drm_connector *connector)
 	__drm_atomic_helper_connector_reset(connector, conn_state);
 }
 EXPORT_SYMBOL(drm_atomic_helper_connector_reset);
+
+/**
+ * drm_atomic_helper_connector_create_state - default &drm_connector_funcs.atomic_create_state hook for connectors
+ * @connector: connector object
+ *
+ * Initializes a pristine @drm_connector_state.
+ *
+ * This is useful for drivers that don't subclass @drm_connector_state.
+ *
+ * RETURNS:
+ * Pointer to new connector state, or ERR_PTR on failure.
+ */
+struct drm_connector_state *
+drm_atomic_helper_connector_create_state(struct drm_connector *connector)
+{
+	struct drm_connector_state *state;
+
+	state = kzalloc_obj(*state);
+	if (!state)
+		return ERR_PTR(-ENOMEM);
+
+	__drm_atomic_helper_connector_create_state(connector, state);
+
+	return state;
+}
+EXPORT_SYMBOL(drm_atomic_helper_connector_create_state);
 
 /**
  * drm_atomic_helper_connector_tv_margins_reset - Resets TV connector properties
