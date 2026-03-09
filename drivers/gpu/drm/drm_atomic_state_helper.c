@@ -322,6 +322,25 @@ void __drm_atomic_helper_plane_reset(struct drm_plane *plane,
 EXPORT_SYMBOL(__drm_atomic_helper_plane_reset);
 
 /**
+ * __drm_atomic_helper_plane_create_state - initializes plane state
+ * @plane: plane object
+ * @state: new state to initialize
+ *
+ * Initializes the newly allocated @state, usually required when
+ * initializing the drivers.
+ *
+ * @state is assumed to be zeroed.
+ *
+ * This is useful for drivers that subclass @drm_plane_state.
+ */
+void __drm_atomic_helper_plane_create_state(struct drm_plane *plane,
+					    struct drm_plane_state *state)
+{
+	__drm_atomic_helper_plane_state_init(state, plane);
+}
+EXPORT_SYMBOL(__drm_atomic_helper_plane_create_state);
+
+/**
  * drm_atomic_helper_plane_reset - default &drm_plane_funcs.reset hook for planes
  * @plane: drm plane
  *
@@ -339,6 +358,31 @@ void drm_atomic_helper_plane_reset(struct drm_plane *plane)
 		__drm_atomic_helper_plane_reset(plane, plane->state);
 }
 EXPORT_SYMBOL(drm_atomic_helper_plane_reset);
+
+/**
+ * drm_atomic_helper_plane_create_state - default &drm_plane_funcs.atomic_create_state hook for planes
+ * @plane: plane object
+ *
+ * Initializes a pristine @drm_plane_state.
+ *
+ * This is useful for drivers that don't subclass @drm_plane_state.
+ *
+ * RETURNS:
+ * Pointer to new plane state, or ERR_PTR on failure.
+ */
+struct drm_plane_state *drm_atomic_helper_plane_create_state(struct drm_plane *plane)
+{
+	struct drm_plane_state *state;
+
+	state = kzalloc_obj(*state);
+	if (!state)
+		return ERR_PTR(-ENOMEM);
+
+	__drm_atomic_helper_plane_create_state(plane, state);
+
+	return state;
+}
+EXPORT_SYMBOL(drm_atomic_helper_plane_create_state);
 
 /**
  * __drm_atomic_helper_plane_duplicate_state - copy atomic plane state
