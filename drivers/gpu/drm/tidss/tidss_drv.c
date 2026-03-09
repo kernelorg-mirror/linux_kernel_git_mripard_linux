@@ -171,8 +171,6 @@ static int tidss_probe(struct platform_device *pdev)
 
 	drm_kms_helper_poll_init(ddev);
 
-	drm_mode_config_reset(ddev);
-
 	ret = drm_dev_register(ddev, 0);
 	if (ret) {
 		dev_err(dev, "failed to register DRM device\n");
