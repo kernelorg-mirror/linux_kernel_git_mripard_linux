@@ -1100,6 +1100,10 @@ int drm_dev_register(struct drm_device *dev, unsigned long flags)
 		ret = drm_modeset_register_all(dev);
 		if (ret)
 			goto err_unload;
+
+		ret = drm_mode_config_create_state(dev);
+		if (ret)
+			goto err_unload;
 	}
 	drm_panic_register(dev);
 	drm_client_sysrq_register(dev);
