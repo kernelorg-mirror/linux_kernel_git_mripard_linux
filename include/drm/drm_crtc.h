@@ -639,6 +639,19 @@ struct drm_crtc_funcs {
 			    struct drm_property *property, uint64_t val);
 
 	/**
+	 * @atomic_create_state:
+	 *
+	 * Allocates a pristine, initialized, state for the crtc object
+	 * and returns it.
+	 *
+	 * RETURNS:
+	 *
+	 * A new, pristine, crtc state instance or an error pointer
+	 * on failure.
+	 */
+	struct drm_crtc_state *(*atomic_create_state)(struct drm_crtc *crtc);
+
+	/**
 	 * @atomic_duplicate_state:
 	 *
 	 * Duplicate the current atomic state for this CRTC and return it.
