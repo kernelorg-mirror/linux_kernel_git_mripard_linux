@@ -1601,6 +1601,7 @@ static bool init_group(struct drm_dp_tunnel_mgr *mgr, struct drm_dp_tunnel_group
 	INIT_LIST_HEAD(&group->tunnels);
 
 	drm_atomic_private_obj_init(mgr->dev, &group->base,
+				    group->name,
 				    &tunnel_group_funcs);
 
 	return true;
