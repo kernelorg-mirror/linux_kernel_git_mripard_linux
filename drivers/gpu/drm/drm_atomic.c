@@ -987,6 +987,7 @@ static void drm_atomic_plane_print_state(struct drm_printer *p,
  * drm_atomic_private_obj_init - initialize private object
  * @dev: DRM device this object will be attached to
  * @obj: private object
+ * @name: human-readable name for debug messages
  * @funcs: pointer to the struct of function pointers that identify the object
  * type
  *
@@ -998,6 +999,7 @@ static void drm_atomic_plane_print_state(struct drm_printer *p,
  */
 int drm_atomic_private_obj_init(struct drm_device *dev,
 				struct drm_private_obj *obj,
+				const char *name,
 				const struct drm_private_state_funcs *funcs)
 {
 	struct drm_private_state *state;
@@ -1006,6 +1008,7 @@ int drm_atomic_private_obj_init(struct drm_device *dev,
 	drm_modeset_lock_init(&obj->lock);
 
 	obj->dev = dev;
+	obj->name = kstrdup(name, GFP_KERNEL);
 	obj->funcs = funcs;
 	list_add_tail(&obj->head, &dev->mode_config.privobj_list);
 
@@ -1030,6 +1033,7 @@ drm_atomic_private_obj_fini(struct drm_private_obj *obj)
 {
 	list_del(&obj->head);
 	obj->funcs->atomic_destroy_state(obj, obj->state);
+	kfree(obj->name);
 	drm_modeset_lock_fini(&obj->lock);
 }
 EXPORT_SYMBOL(drm_atomic_private_obj_fini);

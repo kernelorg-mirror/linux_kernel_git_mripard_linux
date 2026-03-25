@@ -381,6 +381,7 @@ void *__devm_drm_bridge_alloc(struct device *dev, size_t size, size_t offset,
 	INIT_LIST_HEAD(&bridge->list);
 	bridge->container = container;
 	bridge->funcs = funcs;
+	bridge->name = devm_kasprintf(dev, GFP_KERNEL, "bridge-%s", dev_name(dev));
 	kref_init(&bridge->refcount);
 
 	err = devm_add_action_or_reset(dev, drm_bridge_put_void, bridge);
@@ -588,7 +589,7 @@ int drm_bridge_attach(struct drm_encoder *encoder, struct drm_bridge *bridge,
 	}
 
 	if (drm_bridge_is_atomic(bridge))
-		drm_atomic_private_obj_init(bridge->dev, &bridge->base,
+		drm_atomic_private_obj_init(bridge->dev, &bridge->base, bridge->name,
 					    &drm_bridge_priv_state_funcs);
 
 	return 0;
