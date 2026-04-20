@@ -24,6 +24,7 @@
 #include <linux/uaccess.h>
 
 #include <drm/drm_atomic.h>
+#include <drm/drm_atomic_sro.h>
 #include <drm/drm_drv.h>
 #include <drm/drm_encoder.h>
 #include <drm/drm_file.h>
@@ -365,6 +366,10 @@ int drm_mode_config_create_initial_state(struct drm_device *dev)
 			return ret;
 	}
 	drm_connector_list_iter_end(&conn_iter);
+
+	ret = dev->mode_config.funcs->atomic_sro_readout_state(dev);
+	if (ret)
+		return ret;
 
 	return 0;
 }
